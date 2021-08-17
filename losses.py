@@ -105,14 +105,16 @@ class PathIntegrationLoss:
             representations[ims_to_perturb.long()] = null_images_rep[ims_to_perturb.long()]
 
 
-        outputs, log_gatings, _, out_forward, out_visual = net.do_path_integration(representations, z_encodings, return_all=True)
+        # outputs, log_gatings, _, out_forward, out_visual = net.do_path_integration(representations, z_encodings, return_all=True)
+        outputs, log_gatings, _ = net.do_path_integration(representations, z_encodings, return_all=False)
         gatings = tch.exp(log_gatings)
 
         # Return all three mainly for diagnostics
         loss_path_integration = mse_loss(outputs, cumulated_actions).float()
-        loss_gating = tch.mean(gatings[:, :, 1]).float()
-        loss_uncertainty = tch.mean(gatings[:, :, 1]*(1.-gatings[:, :, 1])).float()
+        # loss_gating = tch.mean(gatings[:, :, 1]).float()
+        # loss_uncertainty = tch.mean(gatings[:, :, 1]*(1.-gatings[:, :, 1])).float()
 
         # logging.critical('Total time in PI loss : {}'.format(time.time()-tic))
+        # Don't use the other losses, so forget about them
 
-        return loss_path_integration, loss_gating, loss_uncertainty
+        return loss_path_integration, tch.zeros_like(loss_path_integration), tch.zeros_like(loss_path_integration)

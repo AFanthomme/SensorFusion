@@ -18,10 +18,39 @@ from itertools import cycle
 from scipy.signal import lfilter
 from environment import meaningful_trajectories
 from policy import policy_register
+from tqdm import tqdm
 
-# tests_register = {}
 max = lambda x, y: x if x > y else y
 min = lambda x, y: x if x < y else y
+
+PASTEL_GREEN = "#8fbf8f"
+PASTEL_RED = "#ff8080"
+PASTEL_BLUE = "#8080ff"
+PASTEL_MAGENTA = "#ff80ff"
+
+
+def plot_mean_std(ax, data, axis=0, c_line='g', c_fill=PASTEL_GREEN, label=None, log_yscale=False):
+    if not log_yscale:
+        mean =  data.mean(axis=axis)
+        std = data.std(axis=axis)
+        low = mean - std
+        high = mean + std
+    else:
+        ax.set_yscale('log')
+        log_mean = np.log(data).mean(axis=axis)
+        log_std = np.log(data).std(axis=axis)
+        mean = np.exp(log_mean)
+        low = np.exp(log_mean-log_std)
+        high = np.exp(log_mean+log_std)
+
+    x = range(mean.shape[0])
+
+    if label is None:
+        ax.plot(x, mean, c=c_line)
+    else:
+        ax.plot(x, mean, c=c_line, label=label)
+
+    ax.fill_between(x, low, high, color=c_fill, alpha=.7, zorder=1)
 
 def __add_arrows(line, size=15, color=None, zorder=-1):
     if color is None:
@@ -351,6 +380,8 @@ def path_integrator_test(net, env, pars, epoch):
                         ax.scatter(global_pos_with_reset[t,0], global_pos_with_reset[t,1], c=colors[t], marker=marker_with_reset, alpha=.5, zorder=-5)
                         # ax.scatter(global_pos_without_reset[t,0], global_pos_without_reset[t,1], c=colors[t], marker=marker_without_reset, alpha=.7) # That makes the figure too confusing
                         ax.scatter(true_global_pos[t,0], true_global_pos[t,1], c=colors[t], marker=marker_true, alpha=.5, zorder=-5)
+                        if ims_to_perturb[b, t] == 0:
+                            ax.scatter(true_global_pos[t,0], true_global_pos[t,1], edgecolors='k', s=80, facecolors='none', alpha=.5, zorder=.5)
 
                     divider = make_axes_locatable(ax)
                     ax_cb = divider.new_horizontal(size="5%", pad=0.05)
@@ -371,7 +402,149 @@ def path_integrator_test(net, env, pars, epoch):
                     plt.close('all')
 
 
+def error_evolution_test(net, env, pars, epoch):
+        # This is a bit janky because I copy-pasted it from offline tests, but it should work just fine
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+        batch_size = pars['batch_size']
+        n_trajs = pars['n_trajs']
+        epoch_len = pars['epoch_len']
+        step_size = pars['step_size']
+        im_availability = pars['im_availability']
+        resetting_type = pars['resetting_type']
+        corruption_rate = pars['corruption_rate']
+        noise = pars['noise']
 
 
+        n_seeds = 1
+        seed = 0
 
-tests_register = {'sanity_check_position': sanity_check_position, 'sanity_check_representation': sanity_check_representation, 'path_integrator_test': path_integrator_test}
+        actions = step_size * np.random.randn(n_trajs, epoch_len, 2)
+        rooms, positions, actions = env.static_replay(actions)
+        cumulated_actions = np.cumsum(actions, axis=1)
+
+        if resetting_type == 'fixed':
+            reset_every = int(1/im_availability)
+            ims_to_perturb = ((tch.tensor(range(epoch_len+1))-1).fmod(reset_every)!=0).unsqueeze(0).repeat((batch_size, 1)).float()
+        elif resetting_type == 'random':
+            ims_to_perturb =  tch.bernoulli((1.-im_availability) * tch.ones(batch_size, epoch_len+1))
+
+        ims_to_perturb[:, 0] = tch.zeros_like(ims_to_perturb[:, 0])
+
+        # Now, for images to perturb, choose between "corruption" and "drop"
+        corrupt = tch.where(tch.bernoulli(corruption_rate * tch.ones(batch_size, epoch_len+1)).byte(), ims_to_perturb, tch.zeros(batch_size, epoch_len+1)).bool()
+        drop = tch.logical_and(ims_to_perturb, tch.logical_not(corrupt))
+        mask = (1.-drop.float()).unsqueeze(-1).repeat(1, 1, net.representation_size).float().to(net.device)
+
+        time_based_norm = matplotlib.colors.Normalize(vmin=0, vmax=actions.shape[1]+1)
+        cmap = plt.get_cmap('jet')
+        colors = cmap(time_based_norm(range(epoch_len+1)))
+
+        marker = '*'
+        marker_true = '+'
+
+        all_errors_noiseless = np.zeros((n_trajs*n_seeds, epoch_len))
+        all_errors_noiseless_no_images = np.zeros((n_trajs*n_seeds, epoch_len))
+
+        all_errors_noisy = np.zeros((n_trajs*n_seeds, epoch_len))
+        all_errors_noisy_no_images = np.zeros((n_trajs*n_seeds, epoch_len))
+
+        with tch.set_grad_enabled(False):
+            errors_noiseless = np.zeros((n_trajs, epoch_len))
+            errors_noiseless_no_images = np.zeros((n_trajs, epoch_len))
+
+            errors_noisy = np.zeros((n_trajs, epoch_len))
+            errors_noisy_no_images = np.zeros((n_trajs, epoch_len))
+
+            # First, do the noisy versions
+            for batch_idx in range(n_trajs//batch_size):
+                images = env.get_images(rooms[batch_idx*batch_size:(batch_idx+1)*batch_size], positions[batch_idx*batch_size:(batch_idx+1)*batch_size])
+                representations = net.get_representation(images.view(batch_size * (epoch_len+1), -1, 3)).view(batch_size, (epoch_len+1), -1)
+                actions_encodings =  net.get_z_encoding(tch.from_numpy(actions[batch_idx*batch_size:(batch_idx+1)*batch_size]
+                                                            + noise*np.random.randn(*actions[batch_idx*batch_size:(batch_idx+1)*batch_size].shape)).view(batch_size * (epoch_len), 2).float().to(net.device))
+                actions_encodings = actions_encodings.view(batch_size, (epoch_len), -1)
+                representations = mask * representations
+                tmp = representations[corrupt]
+                tmp = tmp[:, tch.randperm(tmp.shape[1])]
+                representations[corrupt] = tmp
+
+                outputs, _, _ = net.do_path_integration(representations, actions_encodings)
+                outputs = outputs.detach().cpu().numpy()
+                errors_noisy[batch_idx*batch_size:(batch_idx+1)*batch_size] = np.sqrt(((outputs - cumulated_actions[batch_idx*batch_size:(batch_idx+1)*batch_size])**2).sum(axis=-1))
+
+                fully_perturbed_representations = deepcopy(representations)
+                for t in tqdm(range(epoch_len)):
+                    fully_perturbed_representations[:, t] = fully_perturbed_representations[:, t, tch.randperm(fully_perturbed_representations.shape[2])]
+                fully_perturbed_representations[:, 0] = representations[:, 0]
+                outputs_no_images, _, _ = net.do_path_integration(fully_perturbed_representations, actions_encodings)
+                outputs_no_images = outputs_no_images.detach().cpu().numpy()
+                errors_noisy_no_images[batch_idx*batch_size:(batch_idx+1)*batch_size] = np.sqrt(((outputs_no_images - cumulated_actions[batch_idx*batch_size:(batch_idx+1)*batch_size])**2).sum(axis=-1))
+
+            # Then, the noiseless ones
+            for batch_idx in range(n_trajs//batch_size):
+                images = env.get_images(rooms[batch_idx*batch_size:(batch_idx+1)*batch_size], positions[batch_idx*batch_size:(batch_idx+1)*batch_size])
+                representations = net.get_representation(images.view(batch_size * (epoch_len+1), -1, 3)).view(batch_size, (epoch_len+1), -1)
+                actions_encodings =  net.get_z_encoding(tch.from_numpy(actions[batch_idx*batch_size:(batch_idx+1)*batch_size]).view(batch_size * (epoch_len), 2).float().to(net.device))
+                actions_encodings = actions_encodings.view(batch_size, (epoch_len), -1)
+                representations = mask * representations
+                tmp = representations[corrupt]
+                tmp = tmp[:, tch.randperm(tmp.shape[1])]
+                representations[corrupt] = tmp
+
+                outputs, g, _ = net.do_path_integration(representations, actions_encodings)
+                # print(g[:,:, 0].min(), g[:,:, 0].max(), g[:,:, 0].mean())
+                outputs = outputs.detach().cpu().numpy()
+                errors_noiseless[batch_idx*batch_size:(batch_idx+1)*batch_size] = np.sqrt(((outputs - cumulated_actions[batch_idx*batch_size:(batch_idx+1)*batch_size])**2).sum(axis=-1))
+
+                fully_perturbed_representations = deepcopy(representations)
+                for t in tqdm(range(epoch_len)):
+                    fully_perturbed_representations[:, t] = fully_perturbed_representations[:, t, tch.randperm(fully_perturbed_representations.shape[2])]
+                # fully_perturbed_representations = fully_perturbed_representations[:, :, tch.randperm(fully_perturbed_representations.shape[2])]
+                fully_perturbed_representations[:, 0] = representations[:, 0]
+                outputs_no_images, g, _ = net.do_path_integration(fully_perturbed_representations, actions_encodings)
+                # print(g[:,:, 0].min(), g[:,:, 0].max(), g[:,:, 0].mean())
+                outputs_no_images = outputs_no_images.detach().cpu().numpy()
+                errors_noiseless_no_images[batch_idx*batch_size:(batch_idx+1)*batch_size] = np.sqrt(((outputs_no_images - cumulated_actions[batch_idx*batch_size:(batch_idx+1)*batch_size])**2).sum(axis=-1))
+
+            all_errors_noiseless[seed*n_trajs:(seed+1)*n_trajs] = errors_noiseless
+            all_errors_noiseless_no_images[seed*n_trajs:(seed+1)*n_trajs] = errors_noiseless_no_images
+
+            all_errors_noisy[seed*n_trajs:(seed+1)*n_trajs] = errors_noisy
+            all_errors_noisy_no_images[seed*n_trajs:(seed+1)*n_trajs] = errors_noisy_no_images
+
+            all_errors_noiseless = np.reshape(all_errors_noiseless, (-1,) + all_errors_noiseless.shape[1:])
+            all_errors_noiseless_no_images = np.reshape(all_errors_noiseless_no_images, (-1,) + all_errors_noiseless_no_images.shape[1:])
+            all_errors_noisy = np.reshape(all_errors_noisy, (-1,) + all_errors_noisy.shape[1:])
+            all_errors_noisy_no_images = np.reshape(all_errors_noisy_no_images, (-1,) + all_errors_noisy_no_images.shape[1:])
+
+            fig = plt.figure(tight_layout=True, figsize=(10, 5))
+            gs = matplotlib.gridspec.GridSpec(2, 2)
+
+            ax = fig.add_subplot(gs[0, 0])
+            plot_mean_std(ax, all_errors_noiseless_no_images)
+            ax.set_title('Without images', fontsize=20)
+            ax.set_ylabel(r"\begin{center}Perfect\\reafference\end{center}", fontsize=20)
+
+            ax = fig.add_subplot(gs[0, 1])
+            for t in range(1, epoch_len):
+                if ims_to_perturb[0, t+1] == 0:
+                    ax.axvline(x=t, ls='--', c='k')
+            plot_mean_std(ax, all_errors_noiseless)
+            ax.set_title('With images', fontsize=20)
+
+            ax = fig.add_subplot(gs[1, 0])
+            plot_mean_std(ax, all_errors_noisy_no_images)
+            ax.set_ylabel(r'\begin{center}Noisy\\reafference\end{center}', fontsize=20)
+
+            ax = fig.add_subplot(gs[1, 1])
+            for t in range(1, epoch_len):
+                if ims_to_perturb[0, t+1] == 0:
+                    ax.axvline(x=t, ls='--', c='k')
+            plot_mean_std(ax, all_errors_noisy)
+
+            os.makedirs(net.save_folder + '{}/'.format(epoch) + 'resetting_errors_summary', exist_ok=True)
+            fig.savefig(net.save_folder + '{}/'.format(epoch) + 'resetting_errors_summary/im_availability_{}_noise_{}_resetting_{}.pdf'.format(im_availability, noise, resetting_type))
+            plt.close(fig)
+
+
+tests_register = {'sanity_check_position': sanity_check_position, 'sanity_check_representation': sanity_check_representation, 'path_integrator_test': path_integrator_test, 'error_evolution': error_evolution_test}

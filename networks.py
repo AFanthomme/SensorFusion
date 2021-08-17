@@ -1,10 +1,14 @@
 import torch as tch
+import torch
 from torch.nn import Module, ModuleList
 import torch.nn as nn
 import os
 import logging
+# from reimplementations import *
+import torch.nn.functional as F
+from torch.nn import Parameter
+from copy import deepcopy
 
-# TODO: add to resetnetwork a "step" function that takes current internal state and inputs and updates it (RNNCell style)
 
 class BasicDense(Module):
     def __init__(self, in_size=1024, out_size=512, intermediate_sizes=[512, 512], activation='relu', use_bias=True):
@@ -267,17 +271,19 @@ class ResetNetwork(Module):
 
         # After that, update according to the following scheme:
         for t in range(T):
-            # 1. Propose a new state using the forward model
-            h_forward = self.forward_model(h, z_representations[:, t])
-            # 2. Propose a new state from the image
-            h_observed = image_representations[:,t+1]
-            # 3. Choose between the two
-            log_g = self.gating_module(tch.cat([tch.zeros_like(h_observed), h_observed], dim=1))
+            # # 1. Propose a new state using the forward model
+            # h_forward = self.forward_model(h, z_representations[:, t])
+            # # 2. Propose a new state from the image
+            # h_observed = image_representations[:,t+1]
+            # # 3. Choose between the two
+            # log_g = self.gating_module(tch.cat([tch.zeros_like(h_observed), h_observed], dim=1))
+            #
+            # g = tch.exp(log_g)
+            # h = g[:, 0].unsqueeze(1) * h_forward + g[:, 1].unsqueeze(1) * h_observed
 
-            g = tch.exp(log_g)
-            h = g[:, 0].unsqueeze(1) * h_forward + g[:, 1].unsqueeze(1) * h_observed
+            h, h_forward, h_observed, log_g = self.update_internal_state(h, image_representations[:,t+1], z_representations[:, t])
 
-            # 4. Decode the position
+            # Decode the position
             out = self.backward_model(image_representations[:, 0], h)
 
 
@@ -293,6 +299,19 @@ class ResetNetwork(Module):
             return outputs, log_gatings, internal_states, outputs_forward, outputs_visual
         else:
             return outputs, log_gatings, internal_states
+
+    def update_internal_state(self, state, im_rep, z_rep):
+        # 1. Propose a new state using the forward model
+        h_forward = self.forward_model(state, z_rep)
+        # 2. Propose a new state from the image
+        h_observed = im_rep
+        # 3. Choose between the two
+        log_g = self.gating_module(tch.cat([tch.zeros_like(h_observed), h_observed], dim=1))
+
+        g = tch.exp(log_g)
+        h = g[:, 0].unsqueeze(1) * h_forward + g[:, 1].unsqueeze(1) * h_observed
+        return h, h_forward, h_observed, log_g
+
 
 
     def save(self, suffix=''):
@@ -363,10 +382,528 @@ class BigResetNetwork(ResetNetwork):
         if load_from is not None:
             self.load(load_from)
 
+# Used to be in representations, but moved it back here
+class GRU(torch.nn.Module):
+    # NOTE: moving stuff to cuda will be taken care of by encapsulating module in networks.py (hopefully)
+    def __init__(self, input_size, hidden_size, num_layers=1, batch_first=True, bias=False):
+        super(GRU, self).__init__()
+
+        if num_layers > 1:
+            raise RuntimeError('See-through reimplementations do not handle multi-layers')
+
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.bias = bias
+        self.batch_first = batch_first
+
+        self.weight_ih_l0 = Parameter(torch.Tensor(3*self.hidden_size, self.input_size), requires_grad=True)
+        self.weight_hh_l0 = Parameter(torch.Tensor(3*self.hidden_size, self.hidden_size), requires_grad=True)
+
+        if not self.bias:
+            self.bias_ih_l0 = Parameter(torch.zeros(3*self.hidden_size), requires_grad=True)
+            self.bias_hh_l0 = Parameter(torch.zeros(3*self.hidden_size), requires_grad=True)
+        else:
+            self.bias_ih_l0 = Parameter(torch.Tensor(3*self.hidden_size), requires_grad=True)
+            self.bias_hh_l0 = Parameter(torch.Tensor(3*self.hidden_size), requires_grad=True)
 
 
+    def GRUCell(self, input, hidden, return_internals=False):
+        gi = F.linear(input, self.weight_ih_l0, self.bias_ih_l0)
+        gh = F.linear(hidden, self.weight_hh_l0, self.bias_hh_l0)
+
+        i_r, i_i, i_n = gi.chunk(3, 1)
+        h_r, h_i, h_n = gh.chunk(3, 1)
+
+        resetgate = torch.sigmoid(i_r + h_r)
+        inputgate = torch.sigmoid(i_i + h_i)
+        newgate = torch.tanh(i_n + resetgate * h_n)
+        hy = newgate + inputgate * (hidden - newgate)
+
+        if not return_internals:
+            return hy, None, None, None
+        else:
+            return hy, resetgate, inputgate, newgate
+
+    def forward(self, input, hidden=None, batch_first=None, return_internals=False):
+        if batch_first is None:
+            batch_first = self.batch_first
+
+        if batch_first:
+            input = input.transpose(0, 1)
+
+        epoch_len = input.shape[0]
+        batch_size = input.shape[1]
+
+        output = torch.zeros(epoch_len, batch_size, self.hidden_size).to(self.device)
+
+        if hidden is None:
+            hidden = torch.zeros(batch_size, self.hidden_size).to(self.device)
+
+
+        if return_internals:
+            resetgates = torch.zeros(epoch_len, batch_size, self.hidden_size)
+            inputgates = torch.zeros(epoch_len, batch_size, self.hidden_size)
+            newgates = torch.zeros(epoch_len, batch_size, self.hidden_size)
+
+
+        for step in range(epoch_len):
+            hidden, resetgate, inputgate, newgate = self.GRUCell(input[step], hidden, return_internals=return_internals)
+            output[step] = hidden
+            if return_internals:
+                resetgates[step] = resetgate
+                inputgates[step] = inputgate
+                newgates[step] = newgate
+
+        if batch_first:
+            output = output.transpose(0, 1)
+            if return_internals:
+                resetgates = resetgates.transpose(0, 1)
+                inputgates = inputgates.transpose(0, 1)
+                newgates = newgates.transpose(0, 1)
+
+        if not return_internals:
+            return output, hidden
+        else:
+            return output, hidden, resetgates, inputgates, newgates
+
+
+
+class LSTM(torch.nn.Module):
+    # NOTE: moving stuff to cuda will be taken care of by encapsulating module in networks.py (hopefully)
+    def __init__(self, input_size, hidden_size, num_layers=1, batch_first=False, bias=True):
+        super(LSTM, self).__init__()
+        if num_layers > 1:
+            raise RuntimeError('See-through reimplementations do not handle multi-layers')
+
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.bias = bias
+        self.batch_first = batch_first
+
+        self.weight_ih_l0 = Parameter(torch.Tensor(4*self.hidden_size, self.input_size), requires_grad=True)
+        self.weight_hh_l0 = Parameter(torch.Tensor(4*self.hidden_size, self.hidden_size), requires_grad=True)
+
+        if not self.bias:
+            self.bias_ih_l0 = None
+            self.bias_hh_l0 = None
+        else:
+            self.bias_ih_l0 = Parameter(torch.Tensor(4*self.hidden_size), requires_grad=True)
+            self.bias_hh_l0 = Parameter(torch.Tensor(4*self.hidden_size), requires_grad=True)
+
+
+    def LSTMCell(self, input, hidden, return_internals=False):
+        hx, cx = hidden
+        gates = F.linear(input, self.weight_ih_l0, self.bias_ih_l0) + F.linear(hx, self.weight_hh_l0, self.bias_hh_l0)
+
+        # ingate, forgetgate, cellgate, outgate = gates.squeeze(1).chunk(4, 1)
+        ingate, forgetgate, cellgate, outgate = gates.squeeze(1).chunk(4, 1) # Maybe the order is fucked?
+
+        ingate = torch.sigmoid(ingate)
+        forgetgate = torch.sigmoid(forgetgate)
+        cellgate = torch.tanh(cellgate)
+        outgate = torch.sigmoid(outgate)
+
+        cy = (forgetgate * cx) + (ingate * cellgate)
+        hy = outgate * torch.tanh(cy)
+
+        if not return_internals:
+            return hy, cy, None, None, None, None
+        else:
+            return hy, cy, ingate, forgetgate, cellgate, outgate
+
+
+    def forward(self, input, hidden=None, batch_first=None, return_internals=False):
+        if batch_first is None:
+            batch_first = self.batch_first
+
+        # print('input shape, batch_first in forward: {}, {}'.format(input.shape, batch_first))
+        if batch_first:
+            input = input.transpose(0, 1)
+
+        # print('input shape in forward afte batch_first transposition: {}'.format(input.shape))
+        epoch_len = input.shape[0]
+        batch_size = input.shape[1]
+
+        if hidden is None:
+            hidden = (torch.zeros(batch_size, self.hidden_size).to(self.device), torch.zeros(batch_size, self.hidden_size).to(self.device))
+
+        output = torch.zeros(epoch_len, batch_size, self.hidden_size).to(self.device)
+        if return_internals:
+            ingates = torch.zeros(epoch_len, batch_size, self.hidden_size).to(self.device)
+            forgetgates = torch.zeros(epoch_len, batch_size, self.hidden_size).to(self.device)
+            cellgates = torch.zeros(epoch_len, batch_size, self.hidden_size).to(self.device)
+            outgates = torch.zeros(epoch_len, batch_size, self.hidden_size).to(self.device)
+
+
+        for step in range(epoch_len):
+            # print('step{}'.format(step), input.shape, input[step].shape, hidden[0].shape, hidden[1].shape)
+            hy, cy, ingate, forgetgate, cellgate, outgate = self.LSTMCell(input[step], hidden, return_internals=return_internals)
+            output[step] = hy
+            hidden = (hy, cy)
+            if return_internals:
+                ingates[step] = ingate
+                forgetgates[step] = forgetgate
+                cellgates[step] = cellgate
+                outgates[step] = outgate
+
+        if batch_first:
+            output = output.transpose(0, 1)
+            if return_internals:
+                ingates = ingates.transpose(0, 1)
+                forgetgates = forgetgates.transpose(0, 1)
+                cellgates = cellgates.transpose(0, 1)
+                outgates = outgates.transpose(0, 1)
+
+        if not return_internals:
+            return output, (hy, cy)
+        else:
+            return output, (hy, cy), ingates, forgetgates, cellgates, outgates
+
+
+class LegacyReimplementationPathIntegrator(Module):
+    def __init__(self, representation_size=512, seed=0, device_name='cuda', save_folder='out/tests/', load_from=None, recurrence_type='GRU', recurrence_args={'hidden_size':None, 'num_layers': 1},
+                    use_start_rep_explicitly=True, use_reimplementation=False, **kwargs):
+        pass
+    #     super(LegacyReimplementationPathIntegrator, self).__init__()
+    #     self.type = 'offshelf'
+    #     self.seed = seed
+    #     tch.manual_seed(seed)
+    #     tch.cuda.manual_seed(seed)
+    #     self.is_cheater = False
+    #     self.recurrence_type = recurrence_type
+    #
+    #     self.representation_size = representation_size
+    #     self.load_from = load_from
+    #     self.device_name = device_name
+    #     self.save_folder = save_folder + 'seed{}/'.format(seed)
+    #     self.use_attention = False
+    #     self.use_start_rep_explicitly = use_start_rep_explicitly
+    #     self.use_reimplementation = use_reimplementation
+    #
+    #     self.device = tch.device(self.device_name)
+    #
+    #     try:
+    #         os.makedirs(self.save_folder, exist_ok=True)
+    #     except FileExistsError:
+    #         pass
+    #
+    #     self.representation_module = BasicConv(out_size=self.representation_size, activation='relu')
+    #     self.z_encoder_module = BasicDense(in_size=2, out_size=self.representation_size, intermediate_sizes=[256], activation='relu')
+    #
+    #     # Just for compatibility
+    #     self.backward_module = BasicDense(in_size=2, out_size=self.representation_size, intermediate_sizes=[256], activation='relu')
+    #
+    #     if recurrence_args['hidden_size'] == None:
+    #         recurrence_args['hidden_size'] = representation_size
+    #
+    #     self.hidden_size = recurrence_args['hidden_size']
+    #
+    #     if self.use_reimplementation:
+    #         # NOTE: this will be less efficient, so maybe keep it only for tests
+    #         # We just need to keep state_dict compatibility
+    #         # if self.recurrence_type == 'RNN':
+    #         #     raise RuntimeError('RNN was not reimplemented as it adds no benefit whatsoever')
+    #         # elif self.recurrence_type == 'GRU':
+    #         if self.recurrence_type == 'GRU':
+    #             self.recurrence_module = GRU(input_size=2*representation_size, batch_first=True, **recurrence_args)
+    #         elif self.recurrence_type == 'LSTM':
+    #             self.recurrence_module = LSTM(input_size=2*representation_size, batch_first=True, **recurrence_args)
+    #         # elif self.recurrence_type == 'SimplifiedGRU':
+    #         #     self.recurrence_module = SimplifiedGRU(input_size=2*representation_size, batch_first=True, **recurrence_args)
+    #
+    #         self.recurrence_module.device = self.device
+    #
+    #     else:
+    #         # if self.recurrence_type == 'RNN':
+    #         #     self.recurrence_module = nn.RNN(input_size=2*representation_size, batch_first=True, **recurrence_args)
+    #         # elif self.recurrence_type == 'GRU':
+    #         if self.recurrence_type == 'GRU':
+    #             self.recurrence_module = nn.GRU(input_size=2*representation_size, batch_first=True, **recurrence_args)
+    #         elif self.recurrence_type == 'LSTM':
+    #             self.recurrence_module = nn.LSTM(input_size=2*representation_size, batch_first=True, **recurrence_args)
+    #
+    #
+    #     if not self.use_start_rep_explicitly:
+    #         self.decoder = BasicDense(in_size=self.hidden_size, out_size=2, intermediate_sizes=[256], activation='relu')
+    #     else:
+    #         self.decoder = BasicDense(in_size=2*self.hidden_size, out_size=2, intermediate_sizes=[256], activation='relu')
+    #
+    #     self.to(self.device)
+    #     if load_from is not None:
+    #         self.load(load_from)
+    #     else:
+    #         if self.use_reimplementation:
+    #             raise RuntimeError('Reimplemented networks are not initialized and should only ever be used with existing weights')
+    #
+    # def __validate_images(self, images_batch):
+    #     try:
+    #         images_batch = tch.from_numpy(images_batch)
+    #     except:
+    #         pass
+    #
+    #     assert len(images_batch.shape) == 3, "ZFBModuleConv.__validate_images expects batch of retina images"
+    #     images_batch = images_batch.reshape(images_batch.shape[0], 64, 64, 3).permute(0, 3, 1, 2)
+    #
+    #     return images_batch.float().to(self.device)
+    #
+    # def __validate_z(self, z_batch):
+    #     try:
+    #         z_batch = tch.from_numpy(z_batch)
+    #     except:
+    #         pass
+    #
+    #     assert len(z_batch.shape) == 2, "ZFBModuleConv.__validate_z expects batch of vectors"
+    #
+    #     return z_batch.float().to(self.device)
+    #
+    # def get_representation(self, images_batch):
+    #     # Encode the (vectorized) images
+    #     images_batch = self.__validate_images(images_batch)
+    #     assert len(images_batch.shape) == 4, "ZFBModuleConv expects batch of images"
+    #     return self.representation_module(images_batch)
+    #
+    #
+    # def get_z_encoding(self, z_batch):
+    #     z_batch = self.__validate_z(z_batch)
+    #     return self.z_encoder_module(z_batch)
+    #
+    #
+    # def do_path_integration(self, image_representations, z_representations, return_all=False):
+    #     assert len(image_representations.shape) == 3 # expect (bs, T, rep_size)
+    #     bs = image_representations.shape[0]
+    #     T = image_representations.shape[1] - 1
+    #     # logging.critical(image_representations.shape)
+    #     if return_all:
+    #         if not self.use_reimplementation:
+    #             raise UserWarning('Need to use reimplementation of GRU/LSTM if we want to have access to the gates')
+    #
+    #     # We have one more image than transitions; use the first image to initialize the network
+    #     first_rep, image_representations = tch.split(image_representations, [1, image_representations.shape[1]-1], dim=1)
+    #     if not return_all:
+    #
+    #         if self.recurrence_type == 'LSTM':
+    #             _, (h0, c0) = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1))
+    #             # h0 = h0.squeeze(1)
+    #             internal_states, (hn, cn) = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), (h0, c0))
+    #
+    #         # elif self.recurrence_type in ['GRU', 'RNN', 'SimplifiedGRU']:
+    #         elif self.recurrence_type == 'GRU':
+    #             _, h0 = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1))
+    #             internal_states, hn = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), h0)
+    #
+    #         # Use the internal states to compute the actual distance from start
+    #         if not self.use_start_rep_explicitly:
+    #             outputs = self.decoder(internal_states)
+    #         else:
+    #             outputs = self.decoder(tch.cat([internal_states, first_rep.expand(internal_states.shape)], dim=-1))
+    #
+    #         return outputs, tch.zeros(*outputs.shape), internal_states
+    #
+    #     elif return_all:
+    #         if self.recurrence_type == 'LSTM':
+    #             _, (h0, c0) = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1), return_internals=False)
+    #             # h0 = h0.squeeze(1)
+    #             internal_states, (hn, cn), ingates, forgetgates, cellgates, outgates = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), (h0, c0), return_internals=True)
+    #
+    #         # elif self.recurrence_type in ['GRU', 'SimplifiedGRU']:
+    #         elif self.recurrence_type == 'GRU':
+    #             _, h0 = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1), return_internals=False)
+    #             internal_states, hn, resetgates, inputgates, newgates = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), h0, return_internals=True)
+    #
+    #         if not self.use_start_rep_explicitly:
+    #             outputs = self.decoder(internal_states)
+    #         else:
+    #             outputs = self.decoder(tch.cat([internal_states, first_rep.expand(internal_states.shape)], dim=-1))
+    #
+    #         if self.recurrence_type == 'LSTM':
+    #             return outputs, internal_states, ingates, forgetgates, cellgates, outgates
+    #         # elif self.recurrence_type in ['GRU', 'SimplifiedGRU']:
+    #         elif self.recurrence_type == 'GRU':
+    #             return outputs, internal_states, resetgates, inputgates, newgates
+    #
+    #
+    #
+    # def save(self, suffix=''):
+    #     tch.save(self.state_dict(), self.save_folder + 'state_{}.pt'.format(suffix))
+    #
+    # def load(self, path):
+    #     logging.critical('Trying to load state_dict with keys {}'.format(list(tch.load(path).keys())))
+    #     self.load_state_dict(tch.load(path), strict=False)
+
+
+class BigReimplementationPathIntegrator(Module):
+    def __init__(self, representation_size=512, seed=0, device_name='cuda', save_folder='out/tests/', load_encoders_from=None, load_from=None, recurrence_type='GRU', recurrence_args={'hidden_size':None, 'num_layers': 1},
+                    use_start_rep_explicitly=True, use_reimplementation=False, **kwargs):
+        super(BigReimplementationPathIntegrator, self).__init__()
+        self.type = 'offshelf'
+        self.seed = seed
+        tch.manual_seed(seed)
+        tch.cuda.manual_seed(seed)
+        self.is_cheater = False
+        self.recurrence_type = recurrence_type
+
+        self.representation_size = representation_size
+        self.load_from = load_from
+        self.device_name = device_name
+        self.save_folder = save_folder + 'seed{}/'.format(seed)
+        self.use_attention = False
+        self.use_start_rep_explicitly = use_start_rep_explicitly
+        self.use_reimplementation = use_reimplementation
+
+        self.device = tch.device(self.device_name)
+
+        try:
+            os.makedirs(self.save_folder, exist_ok=True)
+        except FileExistsError:
+            pass
+
+        self.representation_module = BigBasicConv(out_size=self.representation_size, activation='relu')
+        self.z_encoder_module = BasicDense(in_size=2, out_size=self.representation_size, intermediate_sizes=[256], activation='relu')
+
+        if recurrence_args['hidden_size'] == None:
+            recurrence_args['hidden_size'] = representation_size
+
+        self.hidden_size = recurrence_args['hidden_size']
+
+        if self.use_reimplementation:
+            if self.recurrence_type == 'GRU':
+                self.recurrence_module = GRU(input_size=2*representation_size, batch_first=True, **recurrence_args)
+            elif self.recurrence_type == 'LSTM':
+                self.recurrence_module = LSTM(input_size=2*representation_size, batch_first=True, **recurrence_args)
+            self.recurrence_module.device = self.device
+        else:
+
+            if self.recurrence_type == 'GRU':
+                self.recurrence_module = nn.GRU(input_size=2*representation_size, batch_first=True, **recurrence_args)
+            elif self.recurrence_type == 'LSTM':
+                self.recurrence_module = nn.LSTM(input_size=2*representation_size, batch_first=True, **recurrence_args)
+
+        if not self.use_start_rep_explicitly:
+            self.backward_module = BasicDense(in_size=self.hidden_size, out_size=2, intermediate_sizes=[256], activation='relu')
+        else:
+            self.backward_module = BasicDense(in_size=2*self.hidden_size, out_size=2, intermediate_sizes=[256], activation='relu')
+
+        self.to(self.device)
+        if load_from is not None:
+            self.load(load_from)
+        elif load_encoders_from is not None:
+            pass
+            self.load_encoders(load_encoders_from)
+            # if self.use_reimplementation:
+            #     raise RuntimeError('Reimplemented networks are not initialized and should only ever be used with existing weights')
+
+    def __validate_images(self, images_batch):
+        try:
+            images_batch = tch.from_numpy(images_batch)
+        except:
+            pass
+
+        assert len(images_batch.shape) == 3, "ZFBModuleConv.__validate_images expects batch of retina images"
+        images_batch = images_batch.reshape(images_batch.shape[0], 64, 64, 3).permute(0, 3, 1, 2)
+
+        return images_batch.float().to(self.device)
+
+    def __validate_z(self, z_batch):
+        try:
+            z_batch = tch.from_numpy(z_batch)
+        except:
+            pass
+
+        assert len(z_batch.shape) == 2, "ZFBModuleConv.__validate_z expects batch of vectors"
+
+        return z_batch.float().to(self.device)
+
+    def get_representation(self, images_batch):
+        # Encode the (vectorized) images
+        images_batch = self.__validate_images(images_batch)
+        assert len(images_batch.shape) == 4, "ZFBModuleConv expects batch of images"
+        return self.representation_module(images_batch)
+
+
+    def get_z_encoding(self, z_batch):
+        z_batch = self.__validate_z(z_batch)
+        return self.z_encoder_module(z_batch)
+
+    def backward_model(self, reps1, reps2):
+        inputs = tch.cat([reps1, reps2], dim=-1) # Was 1 instead of -1, but seemed t work so maybe its the same here
+        return self.backward_module(inputs)
+
+
+    def do_path_integration(self, image_representations, z_representations, return_all=False):
+        assert len(image_representations.shape) == 3 # expect (bs, T, rep_size)
+        bs = image_representations.shape[0]
+        T = image_representations.shape[1] - 1
+        # logging.critical(image_representations.shape)
+        if return_all:
+            if not self.use_reimplementation:
+                raise UserWarning('Need to use reimplementation of GRU/LSTM if we want to have access to the gates')
+
+        # We have one more image than transitions; use the first image to initialize the network
+        first_rep, image_representations = tch.split(image_representations, [1, image_representations.shape[1]-1], dim=1)
+
+        if not return_all:
+
+            if self.recurrence_type == 'LSTM':
+                _, (h0, c0) = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1))
+                # h0 = h0.squeeze(1)
+                internal_states, (hn, cn) = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), (h0, c0))
+
+            # elif self.recurrence_type in ['GRU', 'RNN', 'SimplifiedGRU']:
+            elif self.recurrence_type == 'GRU':
+                _, h0 = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1))
+                internal_states, hn = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), h0)
+
+            # Use the internal states to compute the actual distance from start
+            if not self.use_start_rep_explicitly:
+                outputs = self.backward_module(internal_states)
+            else:
+                outputs = self.backward_module(tch.cat([internal_states, first_rep.expand(internal_states.shape)], dim=-1))
+
+            return outputs, tch.zeros(*outputs.shape), internal_states
+
+        elif return_all:
+            if self.recurrence_type == 'LSTM':
+                _, (h0, c0) = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1), return_internals=False)
+                # h0 = h0.squeeze(1)
+                internal_states, (hn, cn), ingates, forgetgates, cellgates, outgates = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), (h0, c0), return_internals=True)
+
+            # elif self.recurrence_type in ['GRU', 'SimplifiedGRU']:
+            elif self.recurrence_type == 'GRU':
+                _, h0 = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1), return_internals=False)
+                internal_states, hn, resetgates, inputgates, newgates = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), h0, return_internals=True)
+
+            if not self.use_start_rep_explicitly:
+                outputs = self.decoder(internal_states)
+            else:
+                outputs = self.decoder(tch.cat([internal_states, first_rep.expand(internal_states.shape)], dim=-1))
+
+            if self.recurrence_type == 'LSTM':
+                return outputs, internal_states, ingates, forgetgates, cellgates, outgates
+            # elif self.recurrence_type in ['GRU', 'SimplifiedGRU']:
+            elif self.recurrence_type == 'GRU':
+                return outputs, internal_states, resetgates, inputgates, newgates
+
+    def save(self, suffix=''):
+        tch.save(self.state_dict(), self.save_folder + 'state_{}.pt'.format(suffix))
+
+    def load(self, path):
+        logging.critical('Trying to load state_dict with keys {}'.format(list(tch.load(path).keys())))
+        dict = tch.load(path)
+        self.load_state_dict(dict, strict=False)
+
+    def load_encoders(self, path):
+        logging.critical('Trying to load only encoders from path {}'.format(path))
+        dict = tch.load(path)
+        tmp = deepcopy(dict)
+        for key in tmp.keys():
+            if key.split('.')[0] not in ['z_encoder_module', 'representation_module']:
+                dict.pop(key)
+        logging.critical('After filtering, keys remaining are {}'.format(dict.keys()))
+        self.load_state_dict(dict, strict=False)
 
 
 network_register = {'FBModule': FBModule, 'ResetNetwork': ResetNetwork,
-                    'BigFBModule':BigFBModule, 'BigResetNetwork': BigResetNetwork,
+                    'BigFBModule': BigFBModule, 'BigResetNetwork': BigResetNetwork,
+                    'LegacyReimplementationPathIntegrator': LegacyReimplementationPathIntegrator,
+                    'BigReimplementationPathIntegrator': BigReimplementationPathIntegrator,
                     }
