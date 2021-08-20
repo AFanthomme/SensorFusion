@@ -44,7 +44,7 @@ class PolicyEvaluationCallback(BaseCallback):
         print('working on the policyeval')
         env = self.eval_env
 
-        for traj in range(50):
+        for traj in range(20):
             obs = env.reset()
             start_room, start_pos = env.agent_room, env.agent_position
             reward_room, reward_pos = env.reward_room, env.reward_position
@@ -60,6 +60,6 @@ class PolicyEvaluationCallback(BaseCallback):
             # self.logger.record(self.save_path + 'trajectories/{}/{}.pdf'.format(self.num_timesteps, traj), Figure(figure, close=True), exclude=("stdout", "log", "json", "csv"))
             # self.logger.record(self.fig_name_prefix + 'step_{}_traj_{}.pdf'.format(self.num_timesteps, traj), Figure(figure, close=False), exclude=("stdout", "log", "json", "csv"))
             self.logger.record(self.fig_name_prefix + 'trajectories_latest_{}.pdf'.format(traj), Figure(figure, close=True), exclude=("stdout", "log", "json", "csv"))
-            plt.close(figure)
+            plt.close('all')
 
         return True
