@@ -26,6 +26,7 @@ from schedules import *
 
 class EndToEndTrainer:
     def __init__(self, params, seed):
+        logging.critical(params)
         net_pars = params['net_params']
         env_pars = params['env_params']
         train_pars = params['train_params']
@@ -175,7 +176,7 @@ class EndToEndTrainer:
 
 
 
-            if (epoch+1) % 1000 == 0 or (epoch == self.n_epochs) :
+            if (epoch+1) % 500 == 0 or (epoch == self.n_epochs) :
                 tch.save(best_net_state, net.save_folder+'best_net.tch')
                 np.savetxt(self.network.save_folder + 'losses.txt', losses)
 
@@ -198,12 +199,15 @@ class EndToEndTrainer:
                     opt.param_groups[3]['lr'] = self.learning_rates[3]
                     opt.param_groups[4]['lr'] = self.learning_rates[4]
 
-
+        tch.save(best_net_state, net.save_folder+'best_net.tch')
+        tch.save(net.state_dict(), net.save_folder+'final_net.tch')
+        np.savetxt(self.network.save_folder + 'losses.txt', losses)
         self.do_tests('final', net, env)
 
 
 class EndToEndTrainerOffshelf:
     def __init__(self, params, seed):
+        logging.critical(params)
         net_pars = params['net_params']
         env_pars = params['env_params']
         train_pars = params['train_params']
@@ -353,7 +357,7 @@ class EndToEndTrainerOffshelf:
 
 
 
-            if (epoch+1) % 1000 == 0 or (epoch == self.n_epochs) :
+            if (epoch+1) % 500 == 0 or (epoch == self.n_epochs) :
                 tch.save(best_net_state, net.save_folder+'best_net.tch')
                 np.savetxt(self.network.save_folder + 'losses.txt', losses)
 
@@ -377,5 +381,7 @@ class EndToEndTrainerOffshelf:
                     opt.param_groups[3]['lr'] = self.learning_rates[3]
                     # opt.param_groups[4]['lr'] = self.learning_rates[4]
 
-
+        tch.save(best_net_state, net.save_folder+'best_net.tch')
+        tch.save(net.state_dict(), net.save_folder+'final_net.tch')
+        np.savetxt(self.network.save_folder + 'losses.txt', losses)
         self.do_tests('final', net, env)

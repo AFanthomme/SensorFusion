@@ -302,7 +302,7 @@ class ResetNetwork(Module):
         tch.save(self.state_dict(), self.save_folder + 'state_{}.pt'.format(suffix))
 
     def load(self, path):
-        logging.critical('loading weights from : {}'.format(path))
+        logging.critical('loading weights from : {} [seed{}]'.format(path, self.seed))
         self.load_state_dict(tch.load(path), strict=False) # Need strict kwarg otherwise cannot load partial state_dict
 
 
@@ -604,10 +604,11 @@ class BigReimplementationPathIntegrator(Module):
         if load_from is not None:
             self.load(load_from)
         elif load_encoders_from is not None:
-            pass
+            # pass
             self.load_encoders(load_encoders_from)
             # if self.use_reimplementation:
             #     raise RuntimeError('Reimplemented networks are not initialized and should only ever be used with existing weights')
+        logging.critical(self.z_encoder_module)
 
     def __validate_images(self, images_batch):
         try:
@@ -690,9 +691,9 @@ class BigReimplementationPathIntegrator(Module):
                 internal_states, hn, resetgates, inputgates, newgates = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), h0, return_internals=True)
 
             if not self.use_start_rep_explicitly:
-                outputs = self.decoder(internal_states)
+                outputs = self.backward_module(internal_states)
             else:
-                outputs = self.decoder(tch.cat([internal_states, first_rep.expand(internal_states.shape)], dim=-1))
+                outputs = self.backward_module(tch.cat([internal_states, first_rep.expand(internal_states.shape)], dim=-1))
 
             if self.recurrence_type == 'LSTM':
                 return outputs, internal_states, ingates, forgetgates, cellgates, outgates
@@ -704,18 +705,18 @@ class BigReimplementationPathIntegrator(Module):
         tch.save(self.state_dict(), self.save_folder + 'state_{}.pt'.format(suffix))
 
     def load(self, path):
-        logging.critical('Trying to load state_dict with keys {}'.format(list(tch.load(path).keys())))
+        logging.critical('Trying to load state_dict with keys {} [seed{}]'.format(list(tch.load(path).keys()), self.seed))
         dict = tch.load(path)
         self.load_state_dict(dict, strict=False)
 
     def load_encoders(self, path):
-        logging.critical('Trying to load only encoders from path {}'.format(path))
+        logging.critical('Trying to load only encoders from path {}  [seed{}]'.format(path, self.seed))
         dict = tch.load(path)
         tmp = deepcopy(dict)
         for key in tmp.keys():
             if key.split('.')[0] not in ['z_encoder_module', 'representation_module']:
                 dict.pop(key)
-        logging.critical('After filtering, keys remaining are {}'.format(dict.keys()))
+        logging.critical('After filtering, keys remaining are {}  [seed{}]'.format(dict.keys(), self.seed))
         self.load_state_dict(dict, strict=False)
 
 

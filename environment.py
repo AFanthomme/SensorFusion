@@ -120,7 +120,7 @@ environment_register = {
                         [0, 0],
                         [-2., 0],
                         [-4., 0],
-                        [0., -2.]
+                        [0., -2.],
                         ]),
                      'colors': np.array([
                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
@@ -336,949 +336,954 @@ environment_register = {
                 ]
         }
         },
-    # 'DonutPath':
-    #     {
-    #     'room_centers':
-    #         np.array([
-    #             [-2., -2.],
-    #             [0., -2.],
-    #             [2., -2.],
-    #             [2., 0.],
-    #             [2., 2.],
-    #             [0., 2.],
-    #             [-2., 2.],
-    #             [-2., 0.],
-    #         ]),
-    #
-    #     'room_sizes':
-    #         np.array([
-    #             [1., 1.],
-    #             [1., 1.],
-    #             [1., 1.],
-    #             [1., 1.],
-    #             [1., 1.],
-    #             [1., 1.],
-    #             [1., 1.],
-    #             [1., 1.],
-    #         ]),
-    #
-    #     'room_exits':
-    #         [
-    #             [{'goes_to': [1, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
-    #              {'goes_to': [7, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y':1.},], # Room 0 exits
-    #             [{'goes_to': [2, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
-    #               {'goes_to': [0, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 1 exits
-    #             [{'goes_to': [3, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #               {'goes_to': [1, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 2 exits
-    #             [{'goes_to': [4, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #               {'goes_to': [2, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 3 exits
-    #             [{'goes_to': [5, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y': 0.},
-    #               {'goes_to': [3, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 4 exits
-    #             [{'goes_to': [6, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
-    #                {'goes_to': [4, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 5 exits
-    #             [{'goes_to': [7, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
-    #               {'goes_to': [5, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y': 0.},], # Room 6 exits
-    #             [{'goes_to': [6, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #                {'goes_to': [0, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 7 exits
-    #         ],
-    #     'possible_layouts':
-    #         {'Default':
-    #             [ # 'positions': (n_obj, 2) colors(n_obj, 3)
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [2., 0.],
-    #                     [0., 2.],
-    #                     [4., 0.],
-    #                     [0., 4.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1., 0., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 1., 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                  ])
-    #                 }, # Room 0
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [-2., 0.],
-    #                     [2., 0.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1., 0., 0.],
-    #                     [0., 1., 0.],
-    #                  ])
-    #                 }, # Room 1
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [-2., 0.],
-    #                     [0., 2.],
-    #                     [-4., 0.],
-    #                     [0., 4.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [0., 1., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1., 0., 0.],
-    #                     [0., 0., 1.],
-    #                  ])
-    #                  }, # Room 2
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [0., 2.],
-    #                     [0., -2.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 0., 1.],
-    #                     [0., 1., 0.],
-    #                  ])
-    #                 }, # Room 3
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [-2., 0.],
-    #                     [0., -2.],
-    #                     [-4., 0.],
-    #                     [0., -4.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [0., 0., 1.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [0., 1., 0.],
-    #                  ])
-    #                  }, # Room 4
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [2., 0.],
-    #                     [-2., 0.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 0., 1.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                  ])
-    #                 }, # Room 5
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [2., 0.],
-    #                     [0., -2.],
-    #                     [4., 0.],
-    #                     [0., -4.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 0., 1.],
-    #                     [1., 0., 1.],
-    #                  ])
-    #                  }, # Room 6
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [0., 2.],
-    #                     [0., -2.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1., 0., 0.],
-    #                  ])
-    #                 }, # Room 7
-    #             ]
-    #         },
-    #     },
+    'DonutPath':
+        {
+        'room_centers':
+            np.array([
+                [-2., -2.],
+                [0., -2.],
+                [2., -2.],
+                [2., 0.],
+                [2., 2.],
+                [0., 2.],
+                [-2., 2.],
+                [-2., 0.],
+            ]),
 
-    #     'DoubleDonut':
-    #         {
-    #         'room_centers':
-    #             np.array([
-    #                 # 1st donut (left)
-    #                 [-2., -2., 0],
-    #                 [0., -2., 0],
-    #                 [2., -2., 0],
-    #                 [2., 0., 0],
-    #                 [2., 2., 0],
-    #                 [0., 2., 0],
-    #                 [-2., 2., 0],
-    #                 [-2., 0., 0],
-    #
-    #                 # 2nd donut (right)
-    #                 [4., -2., 0],
-    #                 [6., -2., 0],
-    #                 [8., -2., 0],
-    #                 [8., 0., 0],
-    #                 [8., 2., 0],
-    #                 [6., 2., 0],
-    #                 [4., 2., 0],
-    #                 [4., 0., 0],
-    #
-    #             ]),
-    #
-    #         'room_sizes':
-    #             np.array([
-    #                 # 1st floor
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #
-    #                 # 2nd floor
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #                 [1., 1.],
-    #             ]),
-    #
-    #         'room_exits':
-    #             [ # Have to add exits only to 2, 3, 4
-    #                 [{'goes_to': [1, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y': 0.},
-    #                  {'goes_to': [7, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y':1.}, ], # Room 0 exits
-    #                 [{'goes_to': [2, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
-    #                   {'goes_to': [0, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 1 exits
-    #                 [{'goes_to': [3, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #                   {'goes_to': [1, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
-    #                   {'goes_to': [8, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 2 exits
-    #                 [{'goes_to': [4, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #                   {'goes_to': [2, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
-    #                   {'goes_to': [15, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 3 exits
-    #                 [{'goes_to': [5, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y': 0.},
-    #                   {'goes_to': [3, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
-    #                   {'goes_to': [14, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 4 exits
-    #                 [{'goes_to': [6, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
-    #                    {'goes_to': [4, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 5 exits
-    #                 [{'goes_to': [7, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
-    #                   {'goes_to': [5, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y': 0.},], # Room 6 exits
-    #                 [{'goes_to': [6, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #                    {'goes_to': [0, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 7 exits
-    #
-    #                   # Add only to 8, 14, 15
-    #                 [{'goes_to': [9, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
-    #                 {'goes_to': [15, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y':1.},
-    #                 {'goes_to': [2, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 8 exits
-    #                 [{'goes_to': [10, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
-    #                   {'goes_to': [8, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 9 exits
-    #                 [{'goes_to': [11, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #                   {'goes_to': [9, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 10 exits
-    #                 [{'goes_to': [12, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #                   {'goes_to': [10, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 11 exits
-    #                 [{'goes_to': [13, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y': 0.},
-    #                   {'goes_to': [11, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 12 exits
-    #                 [{'goes_to': [14, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
-    #                    {'goes_to': [12, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 13 exits
-    #                 [{'goes_to': [15, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
-    #                   {'goes_to': [13, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y': 0.},
-    #                   {'goes_to': [4, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 14 exits
-    #                 [{'goes_to': [14, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
-    #                 {'goes_to': [3, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
-    #                 {'goes_to': [8, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 15 exits
-    #             ],
-    #         'possible_layouts':
-    #         # For right donut, keep the same corner colors but double the objects (y =  +- .5)
-    #
-    #             {'Default':
-    #                 [ # 'positions': (n_obj, 2) colors(n_obj, 3)
-    #                     {'positions': np.array([
-    #                         [0., 0.],
-    #                         [2., 0.],
-    #                         [0., 2.],
-    #                         [4., 0.],
-    #                         [0., 4.],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1., 0., 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 1., 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                      ])
-    #                     }, # Room 0
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.],
-    #                         [-2., 0.],
-    #                         [2., 0.],
-    #                         [4., .5],
-    #                         [4., -.5],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1., 0., 0.],
-    #                         [0., 1., 0.],
-    #                         [1., 0., 0.],
-    #                         [1., 0., 0.],
-    #                      ])
-    #                     }, # Room 1
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.],
-    #                         [-2., 0.],
-    #                         [0., 2.],
-    #                         [-4., 0.],
-    #                         [0., 4.],
-    #                         [2., .5],
-    #                         [2., -.5],
-    #                         [4., .5],
-    #                         [4., -.5],
-    #                         [2., 1.5],
-    #                         [2., 2.5],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [0., 1., 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1., 0., 0.],
-    #                         [0., 0., 1.],
-    #                         [1., 0., 0.],
-    #                         [1., 0., 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                      ])
-    #                      }, # Room 2
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.],
-    #                         [0., 2.],
-    #                         [0., -2.],
-    #                         [2., .5],
-    #                         [2., -.5],
-    #                         [2., 1.5],
-    #                         [2., 2.5],
-    #                         [2., -1.5],
-    #                         [2., -2.5],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 0., 1.],
-    #                         [0., 1., 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                      ])
-    #                     }, # Room 3
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.],
-    #                         [-2., 0.],
-    #                         [0., -2.],
-    #                         [-4., 0.],
-    #                         [0., -4.],
-    #                         [2., .5],
-    #                         [2., -.5],
-    #                         [4., .5],
-    #                         [4., -.5],
-    #                         [2., -1.5],
-    #                         [2., -2.5],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [0., 0., 1.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [0., 1., 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                      ])
-    #                      }, # Room 4
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.],
-    #                         [2., 0.],
-    #                         [-2., 0.],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 0., 1.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                      ])
-    #                     }, # Room 5
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.],
-    #                         [2., 0.],
-    #                         [0., -2.],
-    #                         [4., 0.],
-    #                         [0., -4.],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 0., 1.],
-    #                         [1., 0., 1.],
-    #                      ])
-    #                      }, # Room 6
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.],
-    #                         [0., 2.],
-    #                         [0., -2],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1., 0., 0.],
-    #                      ])
-    #                     }, # Room 7
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.5],
-    #                         [0., -0.5],
-    #                         [2., 0.5],
-    #                         [2., -0.5],
-    #                         [4, 0.5],
-    #                         [4, -0.5],
-    #                         [0., 1.5],
-    #                         [0., 2.5],
-    #                         [0., 3.5],
-    #                         [0., 4.5],
-    #                         [-2, 0.],
-    #                         [-4, 0.],
-    #                         [-2., 2.]
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1., 0., 0.],
-    #                         [1., 0., 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 1., 0.],
-    #                         [0., 1., 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [0., 1., 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                      ])
-    #                     }, # Room 8
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.5],
-    #                         [0., -0.5],
-    #                         [-2., -0.5],
-    #                         [-2., 0.5],
-    #                         [2., 0.5],
-    #                         [2., -0.5],
-    #                         [-4., 0.]
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1., 0., 0.],
-    #                         [1., 0., 0.],
-    #                         [0., 1., 0.],
-    #                         [0., 1., 0.],
-    #                         [0., 1., 0.],
-    #                      ])
-    #                     }, # Room 9
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.5],
-    #                         [0., -0.5],
-    #                         [-2., 0.5],
-    #                         [-2., -0.5],
-    #                         [0., 2.5],
-    #                         [0., 1.5],
-    #                         [-4., 0.5],
-    #                         [-4., -0.5],
-    #                         [0., 4.5],
-    #                         [0., 3.5],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [0., 1., 0.],
-    #                         [0., 1., 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1., 0., 0.],
-    #                         [1., 0., 0.],
-    #                         [0., 0., 1.],
-    #                         [0., 0., 1.],
-    #                      ])
-    #                      }, # Room 10
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.5],
-    #                         [0., -0.5],
-    #                         [0., 2.5],
-    #                         [0., 1.5],
-    #                         [0., -1.5],
-    #                         [0., -2.5],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 0., 1.],
-    #                         [0., 0., 1.],
-    #                         [0., 1., 0.],
-    #                         [0., 1., 0.],
-    #                      ])
-    #                     }, # Room 11
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.5],
-    #                         [0., -0.5],
-    #                         [-2., 0.5],
-    #                         [-2., -0.5],
-    #                         [0., -2.5],
-    #                         [0., -1.5],
-    #                         [-4., 0.5],
-    #                         [-4., -0.5],
-    #                         [0., -3.5],
-    #                         [0., -4.5],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [0., 0., 1.],
-    #                         [0., 0., 1.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [0., 1., 0.],
-    #                         [0., 1., 0.],
-    #                      ])
-    #                      }, # Room 12
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.5],
-    #                         [0., -0.5],
-    #                         [2., 0.5],
-    #                         [2., -0.5],
-    #                         [-2., 0.5],
-    #                         [-2., -0.5],
-    #                         [-4., 0.],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 0., 1.],
-    #                         [0., 0., 1.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [0., 0., 1.],
-    #                      ])
-    #                     }, # Room 13
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.5],
-    #                         [0., -0.5],
-    #                         [2., 0.5],
-    #                         [2., -0.5],
-    #                         [0., -2.5],
-    #                         [0., -1.5],
-    #                         [4., 0.5],
-    #                         [4., -0.5],
-    #                         [-2., 0.],
-    #                         [-4., 0.],
-    #                         [-2., -2.],
-    #                         [0., -3.5],
-    #                         [0., -4.5],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 0., 1.],
-    #                         [0., 0., 1.],
-    #                         [0., 0., 1.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1., 0., 0.],
-    #                         [1., 0., 0.],
-    #                      ])
-    #                      }, # Room 14
-    #
-    #                     {'positions': np.array([
-    #                         [0., 0.5],
-    #                         [0., -0.5],
-    #                         [0., 1.5],
-    #                         [0., 2.5],
-    #                         [0., -1.5],
-    #                         [0., -2.5],
-    #                         [-2., 2.],
-    #                         [-2., 0],
-    #                         [-2., -2],
-    #                                  ]),
-    #                      'colors': np.array([
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                         [1., 0., 0.],
-    #                         [1., 0., 0.],
-    #                         [0., 0., 1.],
-    #                         [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                         [0., 1., 0.],
-    #                      ])
-    #                     }, # Room 15
-    #
-    #                 ],
-    #
-    #             # Make the two opposite ends of the "infinite" identical, so that 7 and 11 are ambiguous, force no resetting
-    #             'Ambiguous': [ # 'positions': (n_obj, 2) colors (n_obj, 3)
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [2., 0.],
-    #                     [0., 2.],
-    #                     [4., 0.],
-    #                     [0., 4.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1., 0., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 1., 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                  ])
-    #                 }, # Room 0
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [-2., 0.],
-    #                     [2., 0.],
-    #                     [4., .5],
-    #                     [4., -.5],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1., 0., 0.],
-    #                     [0., 1., 0.],
-    #                     [1., 0., 0.],
-    #                     [1., 0., 0.],
-    #                  ])
-    #                 }, # Room 1
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [-2., 0.],
-    #                     [0., 2.],
-    #                     [-4., 0.],
-    #                     [0., 4.],
-    #                     [2., .5],
-    #                     [2., -.5],
-    #                     [4., .5],
-    #                     [4., -.5],
-    #                     [2., 1.5],
-    #                     [2., 2.5],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [0., 1., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1., 0., 0.],
-    #                     [0., 0., 1.],
-    #                     [1., 0., 0.],
-    #                     [1., 0., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                  ])
-    #                  }, # Room 2
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [0., 2.],
-    #                     [0., -2.],
-    #                     [2., .5],
-    #                     [2., -.5],
-    #                     [2., 1.5],
-    #                     [2., 2.5],
-    #                     [2., -1.5],
-    #                     [2., -2.5],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 0., 1.],
-    #                     [0., 1., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                  ])
-    #                 }, # Room 3
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [-2., 0.],
-    #                     [0., -2.],
-    #                     [-4., 0.],
-    #                     [0., -4.],
-    #                     [2., .5],
-    #                     [2., -.5],
-    #                     [4., .5],
-    #                     [4., -.5],
-    #                     [2., -1.5],
-    #                     [2., -2.5],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [0., 0., 1.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [0., 1., 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                  ])
-    #                  }, # Room 4
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [2., 0.],
-    #                     [-2., 0.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 0., 1.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                  ])
-    #                 }, # Room 5
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [2., 0.],
-    #                     [0., -2.],
-    #                     [4., 0.],
-    #                     [0., -4.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 0., 1.],
-    #                     [1., 0., 1.],
-    #                  ])
-    #                  }, # Room 6
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [0., 2.],
-    #                     [0., -2],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1., 0., 0.],
-    #                  ])
-    #                 }, # Room 7
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.5],
-    #                     [0., -0.5],
-    #                     [2., 0.5],
-    #                     [2., -0.5],
-    #                     [4, 0.],
-    #                     [0., 1.5],
-    #                     [0., 2.5],
-    #                     [0., 3.5],
-    #                     [0., 4.5],
-    #                     [-2, 0.],
-    #                     [-4, 0.],
-    #                     [-2., 2.]
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1., 0., 0.],
-    #                     [1., 0., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1., 0., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [0., 1., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                  ])
-    #                 }, # Room 8
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.5],
-    #                     [0., -0.5],
-    #                     [-2., -0.5],
-    #                     [-2., 0.5],
-    #                     [2., 0.],
-    #                     [-4., 0.]
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1., 0., 0.],
-    #                     [1., 0., 0.],
-    #                     [1., 0., 0.],
-    #                     [0., 1., 0.],
-    #                  ])
-    #                 }, # Room 9
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [-2., 0.5],
-    #                     [-2., -0.5],
-    #                     [0., 2],
-    #                     [-4., 0.5],
-    #                     [-4., -0.5],
-    #                     [0., 4.],
-    #
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1., 0., 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1., 0., 0.],
-    #                     [1., 0., 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                  ])
-    #                  }, # Room 10
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [0., 2.],
-    #                     [0., -2.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1., 0., 0.],
-    #
-    #                  ])
-    #                 }, # Room 11
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.],
-    #                     [-2., 0.5],
-    #                     [-2., -0.5],
-    #                     [0., -2.],
-    #                     [-4., 0.5],
-    #                     [-4., -0.5],
-    #                     [0., -4.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1., 0., 0.],
-    #                  ])
-    #                  }, # Room 12
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.5],
-    #                     [0., -0.5],
-    #                     [2., 0.],
-    #                     [-2., 0.5],
-    #                     [-2., -0.5],
-    #                     [-4., 0.],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [0., 0., 1.],
-    #                  ])
-    #                 }, # Room 13
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.5],
-    #                     [0., -0.5],
-    #                     [2., 0.5],
-    #                     [2., -0.5],
-    #                     [0., -2.5],
-    #                     [0., -1.5],
-    #                     [4., 0.],
-    #                     [-2., 0.],
-    #                     [-4., 0.],
-    #                     [-2., -2.],
-    #                     [0., -3.5],
-    #                     [0., -4.5],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [0., 0., 1.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1., 0., 0.],
-    #                     [1., 0., 0.],
-    #                  ])
-    #                  }, # Room 14
-    #
-    #                 {'positions': np.array([
-    #                     [0., 0.5],
-    #                     [0., -0.5],
-    #                     [0., 1.5],
-    #                     [0., 2.5],
-    #                     [0., -1.5],
-    #                     [0., -2.5],
-    #                     [-2., 2.],
-    #                     [-2., 0],
-    #                     [-2., -2],
-    #                              ]),
-    #                  'colors': np.array([
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1./np.sqrt(2), 1./np.sqrt(2), 0.],
-    #                     [1., 0., 0.],
-    #                     [1., 0., 0.],
-    #                     [0., 0., 1.],
-    #                     [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
-    #                     [0., 1., 0.],
-    #                  ])
-    #                 }, # Room 15
-    #
-    #             ],
-    #             },
-    # },
+        'room_sizes':
+            np.array([
+                [1., 1.],
+                [1., 1.],
+                [1., 1.],
+                [1., 1.],
+                [1., 1.],
+                [1., 1.],
+                [1., 1.],
+                [1., 1.],
+            ]),
+
+        'room_exits':
+            [
+                [{'goes_to': [1, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
+                 {'goes_to': [7, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y':1.},], # Room 0 exits
+                [{'goes_to': [2, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
+                  {'goes_to': [0, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 1 exits
+                [{'goes_to': [3, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                  {'goes_to': [1, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 2 exits
+                [{'goes_to': [4, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                  {'goes_to': [2, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 3 exits
+                [{'goes_to': [5, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y': 0.},
+                  {'goes_to': [3, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 4 exits
+                [{'goes_to': [6, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
+                   {'goes_to': [4, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 5 exits
+                [{'goes_to': [7, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
+                  {'goes_to': [5, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y': 0.},], # Room 6 exits
+                [{'goes_to': [6, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                   {'goes_to': [0, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 7 exits
+            ],
+        'possible_layouts':
+            {'Default':
+                [ # 'positions': (n_obj, 2) colors(n_obj, 3)
+                    {'positions': np.array([
+                        [0., 0.],
+                        [2., 0.],
+                        [0., 2.],
+                        [4., 0.],
+                        [0., 4.],
+                                 ]),
+                     'colors': np.array([
+                        [1., 0., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 1., 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                     ])
+                    }, # Room 0
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [-2., 0.],
+                        [2., 0.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1., 0., 0.],
+                        [0., 1., 0.],
+                     ])
+                    }, # Room 1
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [-2., 0.],
+                        [0., 2.],
+                        [-4., 0.],
+                        [0., 4.],
+                                 ]),
+                     'colors': np.array([
+                        [0., 1., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1., 0., 0.],
+                        [0., 0., 1.],
+                     ])
+                     }, # Room 2
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [0., 2.],
+                        [0., -2.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 0., 1.],
+                        [0., 1., 0.],
+                     ])
+                    }, # Room 3
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [-2., 0.],
+                        [0., -2.],
+                        [-4., 0.],
+                        [0., -4.],
+                                 ]),
+                     'colors': np.array([
+                        [0., 0., 1.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [0., 1., 0.],
+                     ])
+                     }, # Room 4
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [2., 0.],
+                        [-2., 0.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 0., 1.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                     ])
+                    }, # Room 5
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [2., 0.],
+                        [0., -2.],
+                        [4., 0.],
+                        [0., -4.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 0., 1.],
+                        [1., 0., 1.],
+                     ])
+                     }, # Room 6
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [0., 2.],
+                        [0., -2.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1., 0., 0.],
+                     ])
+                    }, # Room 7
+                ]
+            },
+        },
+
+        'DoubleDonut':
+            {
+            'room_centers':
+                np.array([
+                    # 1st donut (left)
+                    [-2., -2., 0],
+                    [0., -2., 0],
+                    [2., -2., 0],
+                    [2., 0., 0],
+                    [2., 2., 0],
+                    [0., 2., 0],
+                    [-2., 2., 0],
+                    [-2., 0., 0],
+
+                    # 2nd donut (right)
+                    [4., -2., 0],
+                    [6., -2., 0],
+                    [8., -2., 0],
+                    [8., 0., 0],
+                    [8., 2., 0],
+                    [6., 2., 0],
+                    [4., 2., 0],
+                    [4., 0., 0],
+
+                ]),
+
+            'room_sizes':
+                np.array([
+                    # 1st floor
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+
+                    # 2nd floor
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                ]),
+
+            'room_exits':
+                [ # Have to add exits only to 2, 3, 4
+                    [{'goes_to': [1, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y': 0.},
+                     {'goes_to': [7, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y':1.}, ], # Room 0 exits
+                    [{'goes_to': [2, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
+                      {'goes_to': [0, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 1 exits
+                    [{'goes_to': [3, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                      {'goes_to': [1, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
+                      {'goes_to': [8, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 2 exits
+                    [{'goes_to': [4, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                      {'goes_to': [2, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
+                      {'goes_to': [15, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 3 exits
+                    [{'goes_to': [5, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y': 0.},
+                      {'goes_to': [3, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
+                      {'goes_to': [14, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 4 exits
+                    [{'goes_to': [6, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
+                       {'goes_to': [4, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 5 exits
+                    [{'goes_to': [7, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
+                      {'goes_to': [5, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y': 0.},], # Room 6 exits
+                    [{'goes_to': [6, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                       {'goes_to': [0, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 7 exits
+
+                      # Add only to 8, 14, 15
+                    [{'goes_to': [9, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
+                    {'goes_to': [15, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y':1.},
+                    {'goes_to': [2, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 8 exits
+                    [{'goes_to': [10, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},
+                      {'goes_to': [8, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 9 exits
+                    [{'goes_to': [11, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                      {'goes_to': [9, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 10 exits
+                    [{'goes_to': [12, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                      {'goes_to': [10, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 11 exits
+                    [{'goes_to': [13, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y': 0.},
+                      {'goes_to': [11, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 12 exits
+                    [{'goes_to': [14, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
+                       {'goes_to': [12, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y':0.},], # Room 13 exits
+                    [{'goes_to': [15, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},
+                      {'goes_to': [13, [-1., 0.]], 'axis': 'vertical', 'x': 1., 'y': 0.},
+                      {'goes_to': [4, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},], # Room 14 exits
+                    [{'goes_to': [14, [0., -1.]], 'axis': 'horizontal', 'x': 0., 'y': 1.},
+                    {'goes_to': [3, [1., 0.]], 'axis': 'vertical', 'x': -1., 'y':0.},
+                    {'goes_to': [8, [0., 1.]], 'axis': 'horizontal', 'x': 0., 'y': -1.},], # Room 15 exits
+                ],
+            'possible_reward_pos': {
+                'Default': {'room': 4, 'pos': [0., 0.]},
+            },
+
+
+            'possible_layouts':
+            # For right donut, keep the same corner colors but double the objects (y =  +- .5)
+
+                {'Default':
+                    [ # 'positions': (n_obj, 2) colors(n_obj, 3)
+                        {'positions': np.array([
+                            [0., 0.],
+                            [2., 0.],
+                            [0., 2.],
+                            [4., 0.],
+                            [0., 4.],
+                                     ]),
+                         'colors': np.array([
+                            [1., 0., 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 1., 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                         ])
+                        }, # Room 0
+
+                        {'positions': np.array([
+                            [0., 0.],
+                            [-2., 0.],
+                            [2., 0.],
+                            [4., .5],
+                            [4., -.5],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1., 0., 0.],
+                            [0., 1., 0.],
+                            [1., 0., 0.],
+                            [1., 0., 0.],
+                         ])
+                        }, # Room 1
+
+                        {'positions': np.array([
+                            [0., 0.],
+                            [-2., 0.],
+                            [0., 2.],
+                            [-4., 0.],
+                            [0., 4.],
+                            [2., .5],
+                            [2., -.5],
+                            [4., .5],
+                            [4., -.5],
+                            [2., 1.5],
+                            [2., 2.5],
+                                     ]),
+                         'colors': np.array([
+                            [0., 1., 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1., 0., 0.],
+                            [0., 0., 1.],
+                            [1., 0., 0.],
+                            [1., 0., 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                         ])
+                         }, # Room 2
+
+                        {'positions': np.array([
+                            [0., 0.],
+                            [0., 2.],
+                            [0., -2.],
+                            [2., .5],
+                            [2., -.5],
+                            [2., 1.5],
+                            [2., 2.5],
+                            [2., -1.5],
+                            [2., -2.5],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 0., 1.],
+                            [0., 1., 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                         ])
+                        }, # Room 3
+
+                        {'positions': np.array([
+                            [0., 0.],
+                            [-2., 0.],
+                            [0., -2.],
+                            [-4., 0.],
+                            [0., -4.],
+                            [2., .5],
+                            [2., -.5],
+                            [4., .5],
+                            [4., -.5],
+                            [2., -1.5],
+                            [2., -2.5],
+                                     ]),
+                         'colors': np.array([
+                            [0., 0., 1.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [0., 1., 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                         ])
+                         }, # Room 4
+
+                        {'positions': np.array([
+                            [0., 0.],
+                            [2., 0.],
+                            [-2., 0.],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 0., 1.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                         ])
+                        }, # Room 5
+
+                        {'positions': np.array([
+                            [0., 0.],
+                            [2., 0.],
+                            [0., -2.],
+                            [4., 0.],
+                            [0., -4.],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 0., 1.],
+                            [1., 0., 1.],
+                         ])
+                         }, # Room 6
+
+                        {'positions': np.array([
+                            [0., 0.],
+                            [0., 2.],
+                            [0., -2],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1., 0., 0.],
+                         ])
+                        }, # Room 7
+
+                        {'positions': np.array([
+                            [0., 0.5],
+                            [0., -0.5],
+                            [2., 0.5],
+                            [2., -0.5],
+                            [4, 0.5],
+                            [4, -0.5],
+                            [0., 1.5],
+                            [0., 2.5],
+                            [0., 3.5],
+                            [0., 4.5],
+                            [-2, 0.],
+                            [-4, 0.],
+                            [-2., 2.]
+                                     ]),
+                         'colors': np.array([
+                            [1., 0., 0.],
+                            [1., 0., 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 1., 0.],
+                            [0., 1., 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [0., 1., 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                         ])
+                        }, # Room 8
+
+                        {'positions': np.array([
+                            [0., 0.5],
+                            [0., -0.5],
+                            [-2., -0.5],
+                            [-2., 0.5],
+                            [2., 0.5],
+                            [2., -0.5],
+                            [-4., 0.]
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1., 0., 0.],
+                            [1., 0., 0.],
+                            [0., 1., 0.],
+                            [0., 1., 0.],
+                            [0., 1., 0.],
+                         ])
+                        }, # Room 9
+
+                        {'positions': np.array([
+                            [0., 0.5],
+                            [0., -0.5],
+                            [-2., 0.5],
+                            [-2., -0.5],
+                            [0., 2.5],
+                            [0., 1.5],
+                            [-4., 0.5],
+                            [-4., -0.5],
+                            [0., 4.5],
+                            [0., 3.5],
+                                     ]),
+                         'colors': np.array([
+                            [0., 1., 0.],
+                            [0., 1., 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1., 0., 0.],
+                            [1., 0., 0.],
+                            [0., 0., 1.],
+                            [0., 0., 1.],
+                         ])
+                         }, # Room 10
+
+                        {'positions': np.array([
+                            [0., 0.5],
+                            [0., -0.5],
+                            [0., 2.5],
+                            [0., 1.5],
+                            [0., -1.5],
+                            [0., -2.5],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 0., 1.],
+                            [0., 0., 1.],
+                            [0., 1., 0.],
+                            [0., 1., 0.],
+                         ])
+                        }, # Room 11
+
+                        {'positions': np.array([
+                            [0., 0.5],
+                            [0., -0.5],
+                            [-2., 0.5],
+                            [-2., -0.5],
+                            [0., -2.5],
+                            [0., -1.5],
+                            [-4., 0.5],
+                            [-4., -0.5],
+                            [0., -3.5],
+                            [0., -4.5],
+                                     ]),
+                         'colors': np.array([
+                            [0., 0., 1.],
+                            [0., 0., 1.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [0., 1., 0.],
+                            [0., 1., 0.],
+                         ])
+                         }, # Room 12
+
+                        {'positions': np.array([
+                            [0., 0.5],
+                            [0., -0.5],
+                            [2., 0.5],
+                            [2., -0.5],
+                            [-2., 0.5],
+                            [-2., -0.5],
+                            [-4., 0.],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 0., 1.],
+                            [0., 0., 1.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [0., 0., 1.],
+                         ])
+                        }, # Room 13
+
+                        {'positions': np.array([
+                            [0., 0.5],
+                            [0., -0.5],
+                            [2., 0.5],
+                            [2., -0.5],
+                            [0., -2.5],
+                            [0., -1.5],
+                            [4., 0.5],
+                            [4., -0.5],
+                            [-2., 0.],
+                            [-4., 0.],
+                            [-2., -2.],
+                            [0., -3.5],
+                            [0., -4.5],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 0., 1.],
+                            [0., 0., 1.],
+                            [0., 0., 1.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1., 0., 0.],
+                            [1., 0., 0.],
+                         ])
+                         }, # Room 14
+
+                        {'positions': np.array([
+                            [0., 0.5],
+                            [0., -0.5],
+                            [0., 1.5],
+                            [0., 2.5],
+                            [0., -1.5],
+                            [0., -2.5],
+                            [-2., 2.],
+                            [-2., 0],
+                            [-2., -2],
+                                     ]),
+                         'colors': np.array([
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                            [1., 0., 0.],
+                            [1., 0., 0.],
+                            [0., 0., 1.],
+                            [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                            [0., 1., 0.],
+                         ])
+                        }, # Room 15
+
+                    ],
+
+                # Make the two opposite ends of the "infinite" identical, so that 7 and 11 are ambiguous, force no resetting
+                'Ambiguous': [ # 'positions': (n_obj, 2) colors (n_obj, 3)
+                    {'positions': np.array([
+                        [0., 0.],
+                        [2., 0.],
+                        [0., 2.],
+                        [4., 0.],
+                        [0., 4.],
+                                 ]),
+                     'colors': np.array([
+                        [1., 0., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 1., 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                     ])
+                    }, # Room 0
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [-2., 0.],
+                        [2., 0.],
+                        [4., .5],
+                        [4., -.5],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1., 0., 0.],
+                        [0., 1., 0.],
+                        [1., 0., 0.],
+                        [1., 0., 0.],
+                     ])
+                    }, # Room 1
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [-2., 0.],
+                        [0., 2.],
+                        [-4., 0.],
+                        [0., 4.],
+                        [2., .5],
+                        [2., -.5],
+                        [4., .5],
+                        [4., -.5],
+                        [2., 1.5],
+                        [2., 2.5],
+                                 ]),
+                     'colors': np.array([
+                        [0., 1., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1., 0., 0.],
+                        [0., 0., 1.],
+                        [1., 0., 0.],
+                        [1., 0., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                     ])
+                     }, # Room 2
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [0., 2.],
+                        [0., -2.],
+                        [2., .5],
+                        [2., -.5],
+                        [2., 1.5],
+                        [2., 2.5],
+                        [2., -1.5],
+                        [2., -2.5],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 0., 1.],
+                        [0., 1., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                     ])
+                    }, # Room 3
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [-2., 0.],
+                        [0., -2.],
+                        [-4., 0.],
+                        [0., -4.],
+                        [2., .5],
+                        [2., -.5],
+                        [4., .5],
+                        [4., -.5],
+                        [2., -1.5],
+                        [2., -2.5],
+                                 ]),
+                     'colors': np.array([
+                        [0., 0., 1.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [0., 1., 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                     ])
+                     }, # Room 4
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [2., 0.],
+                        [-2., 0.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 0., 1.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                     ])
+                    }, # Room 5
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [2., 0.],
+                        [0., -2.],
+                        [4., 0.],
+                        [0., -4.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 0., 1.],
+                        [1., 0., 1.],
+                     ])
+                     }, # Room 6
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [0., 2.],
+                        [0., -2],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1., 0., 0.],
+                     ])
+                    }, # Room 7
+
+                    {'positions': np.array([
+                        [0., 0.5],
+                        [0., -0.5],
+                        [2., 0.5],
+                        [2., -0.5],
+                        [4, 0.],
+                        [0., 1.5],
+                        [0., 2.5],
+                        [0., 3.5],
+                        [0., 4.5],
+                        [-2, 0.],
+                        [-4, 0.],
+                        [-2., 2.]
+                                 ]),
+                     'colors': np.array([
+                        [1., 0., 0.],
+                        [1., 0., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1., 0., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [0., 1., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                     ])
+                    }, # Room 8
+
+                    {'positions': np.array([
+                        [0., 0.5],
+                        [0., -0.5],
+                        [-2., -0.5],
+                        [-2., 0.5],
+                        [2., 0.],
+                        [-4., 0.]
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1., 0., 0.],
+                        [1., 0., 0.],
+                        [1., 0., 0.],
+                        [0., 1., 0.],
+                     ])
+                    }, # Room 9
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [-2., 0.5],
+                        [-2., -0.5],
+                        [0., 2],
+                        [-4., 0.5],
+                        [-4., -0.5],
+                        [0., 4.],
+
+                                 ]),
+                     'colors': np.array([
+                        [1., 0., 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1., 0., 0.],
+                        [1., 0., 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                     ])
+                     }, # Room 10
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [0., 2.],
+                        [0., -2.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1., 0., 0.],
+
+                     ])
+                    }, # Room 11
+
+                    {'positions': np.array([
+                        [0., 0.],
+                        [-2., 0.5],
+                        [-2., -0.5],
+                        [0., -2.],
+                        [-4., 0.5],
+                        [-4., -0.5],
+                        [0., -4.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1., 0., 0.],
+                     ])
+                     }, # Room 12
+
+                    {'positions': np.array([
+                        [0., 0.5],
+                        [0., -0.5],
+                        [2., 0.],
+                        [-2., 0.5],
+                        [-2., -0.5],
+                        [-4., 0.],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [0., 0., 1.],
+                     ])
+                    }, # Room 13
+
+                    {'positions': np.array([
+                        [0., 0.5],
+                        [0., -0.5],
+                        [2., 0.5],
+                        [2., -0.5],
+                        [0., -2.5],
+                        [0., -1.5],
+                        [4., 0.],
+                        [-2., 0.],
+                        [-4., 0.],
+                        [-2., -2.],
+                        [0., -3.5],
+                        [0., -4.5],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [0., 0., 1.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1., 0., 0.],
+                        [1., 0., 0.],
+                     ])
+                     }, # Room 14
+
+                    {'positions': np.array([
+                        [0., 0.5],
+                        [0., -0.5],
+                        [0., 1.5],
+                        [0., 2.5],
+                        [0., -1.5],
+                        [0., -2.5],
+                        [-2., 2.],
+                        [-2., 0],
+                        [-2., -2],
+                                 ]),
+                     'colors': np.array([
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1./np.sqrt(2), 1./np.sqrt(2), 0.],
+                        [1., 0., 0.],
+                        [1., 0., 0.],
+                        [0., 0., 1.],
+                        [1./np.sqrt(3), 1./np.sqrt(3), 1./np.sqrt(3)],
+                        [0., 1., 0.],
+                     ])
+                    }, # Room 15
+
+                ],
+                },
+    },
 
 }
 
@@ -1863,12 +1868,113 @@ class World:
         self.t += 1
         return self.agent_room, self.agent_position, deepcopy(rectified_action)
 
+# To allow movement between rooms that touch only on one corner.
+        # if not (invalid_x and invalid_y):
+        #     changed_room = False
+        #     if invalid_y:
+        #         for exit in self.room_exits[self.agent_room]:
+        #             if changed_room:
+        #                 break
+        #             if exit['axis'] =='horizontal':
+        #                 if np.clip(new_pos[1], -Ly, Ly) == exit['y']:
+        #                     logging.debug('crossed horizontal door')
+        #                     used_exit = deepcopy(exit)
+        #                     changed_room = True
+        #
+        #     if invalid_x:
+        #         for exit in self.room_exits[self.agent_room]:
+        #             if changed_room:
+        #                 break
+        #             if exit['axis'] =='vertical':
+        #                 if np.clip(new_pos[0], -Lx, Lx) == exit['x']:
+        #                     logging.debug('crossed vertical door')
+        #                     used_exit = deepcopy(exit)
+        #                     changed_room = True
+        #
+        #     if not changed_room:
+        #         new_room = room_bkp
+        #     else:
+        #         new_room = used_exit['goes_to'][0]
+        #         new_pos = new_pos + self.room_centers[room_bkp, :2] - self.room_centers[new_room, :2]
+        #         self.agent_room = deepcopy(new_room)
+        #
+        #
+        # else:
+        #     # Everything assumes no action can cross three boundaries (more than one in a direction)
+        #     logging.critical('reached the two invalids branch')
+        #
+        #     crossings_are_done = False
+        #
+        #     while (invalid_x or invalid_y):
+        #         changed_room = False
+        #         logging.critical('started another round in two invalids branch')
+        #         logging.critical('{} {} {}'.format(self.agent_room, self.agent_position,  new_pos))
+        #
+        #         if invalid_y:
+        #             for exit in self.room_exits[self.agent_room]:
+        #                 if changed_room:
+        #                     break
+        #                 if exit['axis'] =='horizontal':
+        #                     logging.critical('{} {}'.format(np.clip(new_pos[1], -Ly, Ly), exit['y']))
+        #                     if np.clip(new_pos[1], -Ly, Ly) == exit['y']:
+        #                         logging.critical('crossed horizontal door')
+        #                         used_exit = deepcopy(exit)
+        #                         changed_room = True
+        #
+        #         if changed_room:
+        #             self.agent_room = used_exit['goes_to'][0]
+        #             self.agent_position = new_pos + self.room_centers[room_bkp, :2] - self.room_centers[self.agent_room, :2]
+        #             # remaining_action = action_bkp - self.room_centers[room_bkp, :2] + self.room_centers[self.agent_room, :2]
+        #             # new_pos = np.array([self.agent_position[0] + remaining_action[0], self.agent_position[1] + remaining_action[1]])
+        #             room_bkp = deepcopy(self.agent_room)
+        #             new_pos = self.agent_position
+        #             Lx, Ly = self.room_sizes[self.agent_room]
+        #             invalid_x = new_pos[0]>Lx or new_pos[0]<-Lx
+        #             invalid_y = new_pos[1]>Ly or new_pos[1]<-Ly # Should never be true since we crossed one vertical
+        #             logging.critical('{} {} {}'.format(self.agent_room, self.agent_position,  new_pos))
+        #             continue
+        #
+        #         if invalid_x:
+        #             for exit in self.room_exits[self.agent_room]:
+        #                 if changed_room:
+        #                     break
+        #                 if exit['axis'] =='vertical':
+        #                     if np.clip(new_pos[0], -Lx, Lx) == exit['x']:
+        #                         logging.critical('crossed vertical door')
+        #                         used_exit = deepcopy(exit)
+        #                         changed_room = True
+        #
+        #         if changed_room:
+        #             logging.critical('reached changed_room block')
+        #             self.agent_room = used_exit['goes_to'][0]
+        #             self.agent_position = new_pos + self.room_centers[room_bkp, :2] - self.room_centers[self.agent_room, :2]
+        #             # remaining_action = action_bkp - self.room_centers[room_bkp, :2] + self.room_centers[self.agent_room, :2]
+        #             room_bkp = deepcopy(self.agent_room)
+        #             new_pos = self.agent_position
+        #             Lx, Ly = self.room_sizes[self.agent_room]
+        #             invalid_x = new_pos[0]>Lx or new_pos[0]<-Lx # Should never be true since we crossed one horizontal
+        #             invalid_y = new_pos[1]>Ly or new_pos[1]<-Ly
+        #             logging.critical('{} {} {} {} {}'.format(self.agent_room, self.agent_position,  new_pos, invalid_x, invalid_y))
+        #             continue
+        #
+        #         break
+        #
+        # rectified_new_pos = np.zeros(2)
+        # rectified_new_pos[0] = np.clip(new_pos[0], -Lx, Lx)
+        # rectified_new_pos[1] = np.clip(new_pos[1], -Ly, Ly)
+        # rectified_action = action + rectified_new_pos - new_pos
+        #
+        #
+        # self.agent_position = deepcopy(rectified_new_pos)
+        #
+        # self.t += 1
+        # return self.agent_room, self.agent_position, deepcopy(rectified_action)
 
 
 
 
 class FixedRewardWorld(gym.Env, World):
-    def __init__(self, scale=.5, reward_area_width=.3, chosen_reward_pos='Default', epoch_len=100, **kwargs):
+    def __init__(self, scale=.5, reward_area_width=.3, chosen_reward_pos='Default', epoch_len=100, skip_reset=False, **kwargs):
         # print(kwargs)
         World.__init__(self, **kwargs)
         logging.critical(kwargs)
@@ -1888,11 +1994,11 @@ class FixedRewardWorld(gym.Env, World):
         self.observation_space = spaces.Box(low = -10 * np.ones(self.observation_shape),
                                             high = 10 * np.ones(self.observation_shape),
                                             dtype = np.float32)
-        if not kwargs['skip_reset']:
+        if not skip_reset:
             self.reset()
 
     def reset(self):
-        logging.critical('FixedRewardWorld.reset called')
+        # logging.critical('FixedRewardWorld.reset called')
         self.t = 0
         overlap_exit = True
 
