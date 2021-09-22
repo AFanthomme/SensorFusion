@@ -130,6 +130,7 @@ class FBModule(Module):
         self.backward_module = BasicDense(in_size=2*self.representation_size, intermediate_sizes=[256], out_size=2, activation='relu')
         self.forward_module = BasicDense(in_size=2*self.representation_size, out_size=self.representation_size, intermediate_sizes=[self.representation_size], activation='relu')
 
+
         self.to(self.device)
         if load_from is not None:
             self.load(load_from)
@@ -720,8 +721,180 @@ class BigReimplementationPathIntegrator(Module):
         self.load_state_dict(dict, strict=False)
 
 
+class BigHybridPathIntegrator(Module):
+    def __init__(self, representation_size=512, seed=0, device_name='cuda', save_folder='out/tests/', load_encoders_from=None, load_from=None, recurrence_type='GRU', recurrence_args={'hidden_size':None, 'num_layers': 1},
+                    use_reimplementation=False, **kwargs):
+        super(BigHybridPathIntegrator, self).__init__()
+        self.type = 'hybrid'
+        self.seed = seed
+        tch.manual_seed(seed)
+        tch.cuda.manual_seed(seed)
+        self.is_cheater = False
+        self.recurrence_type = recurrence_type
+
+        self.representation_size = representation_size
+        self.load_from = load_from
+        self.device_name = device_name
+        self.save_folder = save_folder + 'seed{}/'.format(seed)
+        self.use_attention = False
+        self.use_start_rep_explicitly = True
+        self.use_reimplementation = use_reimplementation
+
+        self.device = tch.device(self.device_name)
+
+        try:
+            os.makedirs(self.save_folder, exist_ok=True)
+        except FileExistsError:
+            pass
+
+        self.representation_module = BigBasicConv(out_size=self.representation_size, activation='relu')
+        self.z_encoder_module = BasicDense(in_size=2, out_size=self.representation_size, intermediate_sizes=[256], activation='relu')
+        self.forward_module = BasicDense(in_size=2*self.representation_size, out_size=self.representation_size, intermediate_sizes=[self.representation_size], activation='relu')
+        self.backward_module = BasicDense(in_size=2*self.representation_size, out_size=2, intermediate_sizes=[256], activation='relu')
+
+        if recurrence_args['hidden_size'] == None:
+            recurrence_args['hidden_size'] = representation_size
+
+        self.hidden_size = recurrence_args['hidden_size']
+
+        if self.use_reimplementation:
+            if self.recurrence_type == 'GRU':
+                self.recurrence_module = GRU(input_size=2*representation_size, batch_first=True, **recurrence_args)
+            elif self.recurrence_type == 'LSTM':
+                self.recurrence_module = LSTM(input_size=2*representation_size, batch_first=True, **recurrence_args)
+            self.recurrence_module.device = self.device
+        else:
+            if self.recurrence_type == 'GRU':
+                self.recurrence_module = nn.GRU(input_size=2*representation_size, batch_first=True, **recurrence_args)
+            elif self.recurrence_type == 'LSTM':
+                self.recurrence_module = nn.LSTM(input_size=2*representation_size, batch_first=True, **recurrence_args)
+
+
+        self.to(self.device)
+        if load_from is not None:
+            self.load(load_from)
+
+        logging.critical(self.z_encoder_module)
+
+    def __validate_images(self, images_batch):
+        try:
+            images_batch = tch.from_numpy(images_batch)
+        except:
+            pass
+
+        assert len(images_batch.shape) == 3, "ZFBModuleConv.__validate_images expects batch of retina images"
+        images_batch = images_batch.reshape(images_batch.shape[0], 64, 64, 3).permute(0, 3, 1, 2)
+
+        return images_batch.float().to(self.device)
+
+    def __validate_z(self, z_batch):
+        try:
+            z_batch = tch.from_numpy(z_batch)
+        except:
+            pass
+
+        assert len(z_batch.shape) == 2, "ZFBModuleConv.__validate_z expects batch of vectors"
+
+        return z_batch.float().to(self.device)
+
+    def get_representation(self, images_batch):
+        # Encode the (vectorized) images
+        images_batch = self.__validate_images(images_batch)
+        assert len(images_batch.shape) == 4, "ZFBModuleConv expects batch of images"
+        return self.representation_module(images_batch)
+
+    def get_z_encoding(self, z_batch):
+        z_batch = self.__validate_z(z_batch)
+        return self.z_encoder_module(z_batch)
+
+    def backward_model(self, reps1, reps2):
+        inputs = tch.cat([reps1, reps2], dim=-1) # Was 1 instead of -1, but seemed t work so maybe its the same here
+        return self.backward_module(inputs)
+
+    def forward_model(self, reps1, actions_encoding):
+        inputs = tch.cat([reps1, actions_encoding], dim=1)
+        return self.forward_module(inputs)
+
+
+    def do_path_integration(self, image_representations, z_representations, return_all=False):
+        assert len(image_representations.shape) == 3 # expect (bs, T, rep_size)
+        bs = image_representations.shape[0]
+        T = image_representations.shape[1] - 1
+        # logging.critical(image_representations.shape)
+        if return_all:
+            if not self.use_reimplementation:
+                raise UserWarning('Need to use reimplementation of GRU/LSTM if we want to have access to the gates')
+
+        # We have one more image than transitions; use the first image to initialize the network
+        first_rep, image_representations = tch.split(image_representations, [1, image_representations.shape[1]-1], dim=1)
+
+        if not return_all:
+
+            if self.recurrence_type == 'LSTM':
+                _, (h0, c0) = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1))
+                # h0 = h0.squeeze(1)
+                internal_states, (hn, cn) = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), (h0, c0))
+
+            # elif self.recurrence_type in ['GRU', 'RNN', 'SimplifiedGRU']:
+            elif self.recurrence_type == 'GRU':
+                _, h0 = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1))
+                internal_states, hn = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), h0)
+
+            # Use the internal states to compute the actual distance from start
+            # outputs = self.backward_module(tch.cat([internal_states, first_rep.expand(internal_states.shape)], dim=-1))
+            outputs = self.backward_module(tch.cat([first_rep.expand(internal_states.shape), internal_states], dim=-1))
+
+            return outputs, tch.zeros(*outputs.shape), internal_states
+
+        elif return_all:
+            if self.recurrence_type == 'LSTM':
+                _, (h0, c0) = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1), return_internals=False)
+                # h0 = h0.squeeze(1)
+                internal_states, (hn, cn), ingates, forgetgates, cellgates, outgates = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), (h0, c0), return_internals=True)
+
+            # elif self.recurrence_type in ['GRU', 'SimplifiedGRU']:
+            elif self.recurrence_type == 'GRU':
+                _, h0 = self.recurrence_module(tch.cat([first_rep, tch.zeros_like(z_representations[:,0]).unsqueeze(1)], dim=-1), return_internals=False)
+                internal_states, hn, resetgates, inputgates, newgates = self.recurrence_module(tch.cat([image_representations, z_representations], dim=-1), h0, return_internals=True)
+
+
+            outputs = self.backward_module(tch.cat([internal_states, first_rep.expand(internal_states.shape)], dim=-1))
+
+            if self.recurrence_type == 'LSTM':
+                return outputs, internal_states, ingates, forgetgates, cellgates, outgates
+            # elif self.recurrence_type in ['GRU', 'SimplifiedGRU']:
+            elif self.recurrence_type == 'GRU':
+                return outputs, internal_states, resetgates, inputgates, newgates
+
+    def save(self, suffix=''):
+        tch.save(self.state_dict(), self.save_folder + 'state_{}.pt'.format(suffix))
+
+    def load(self, path):
+        logging.critical('Trying to load state_dict with keys {} [seed{}]'.format(list(tch.load(path).keys()), self.seed))
+        # logging.critical('{}'.format(list(tch.load(path).keys())))
+        # logging.critical('{}'.format(list(self.state_dict().keys())))
+        dict = tch.load(path)
+        # tmp = deepcopy(self.backward_module)
+        self.load_state_dict(dict, strict=False)
+        # for p, pp in zip(tmp.parameters(), self.backward_module.parameters()):
+        #     logging.critical('{}'.format((p-pp).max()))
+        # logging.critical('{}'.format((tmp-self.backward_module).mean()))
+        # raise RuntimeError
+
+    def load_encoders(self, path):
+        logging.critical('Trying to load only encoders from path {}  [seed{}]'.format(path, self.seed))
+        dict = tch.load(path)
+        tmp = deepcopy(dict)
+        for key in tmp.keys():
+            if key.split('.')[0] not in ['z_encoder_module', 'representation_module']:
+                dict.pop(key)
+        logging.critical('After filtering, keys remaining are {}  [seed{}]'.format(dict.keys(), self.seed))
+        self.load_state_dict(dict, strict=False)
+
+
 network_register = {'FBModule': FBModule, 'ResetNetwork': ResetNetwork,
                     'BigFBModule': BigFBModule, 'BigResetNetwork': BigResetNetwork,
                     'LegacyReimplementationPathIntegrator': LegacyReimplementationPathIntegrator,
                     'BigReimplementationPathIntegrator': BigReimplementationPathIntegrator,
+                    'BigHybridPathIntegrator': BigHybridPathIntegrator,
                     }

@@ -7,7 +7,7 @@ import json
 
 
 BASE_FOLDER = 'out/'
-MAP = 'SnakePath'
+MAP = 'DoubleDonut'
 LAYOUT = 'Default'
 PATH = BASE_FOLDER + MAP + '_' + LAYOUT + '/long_experiment/'
 
@@ -32,75 +32,29 @@ default_params = {
     'load_from': None
 }
 
-
+# reinference_errors = [0., .02, .04, .08]
 reinference_errors = [0.]
 image_availabilities = [.2]
 
 load_path = PATH + 'minimal_model/all_losses/'
 
 
-# all_conditions_names = ['minimal_model/all_losses/', 'minimal_model/no_fb_losses/', 'offshelf_LSTM/pretrained/', 'offshelf_LSTM/use_start_rep_no_pretrain/', 'offshelf_LSTM/pretrained_no_start_rep/']
-# all_net_names = ['BigResetNetwork', 'BigResetNetwork', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator']
-# all_use_start_rep = [False, False, True, True, False]
-# all_load_from = [None, None, load_path, None, load_path]
 
 
-# all_conditions_names = ['minimal_model/all_losses/', 'minimal_model/no_fb_losses/', 'offshelf_LSTM/pretrained_frozen/']
-# all_net_names = ['BigResetNetwork', 'BigResetNetwork', 'BigReimplementationPathIntegrator']
-# all_use_start_rep = [False, False, True]
-# all_load_from = [None, None, load_path]
-
-
-# all_conditions_names = ['hybrid_LSTM/pretrained/', 'hybrid_LSTM/scratch/']
+# all_conditions_names = ['hybrid_LSTM/scratch/', 'hybrid_LSTM/pretrained/', ]
 # all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator']
 # all_use_start_rep = [None, None]
-# all_load_from = [load_path, None,]
-
-
-# all_conditions_names = ['hybrid_LSTM/pretrained/', 'hybrid_LSTM/scratch/']
-# all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [None, None]
-# all_load_from = [load_path, None,]
-
-
-# all_conditions_names = ['hybrid_LSTM/pretrained_low_fb/', 'hybrid_LSTM/scratch_low_fb/']
-# all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [None, None]
-# all_load_from = [load_path, None,]
-
-
-# all_conditions_names = ['hybrid_LSTM/pretrained_high_fb/', 'hybrid_LSTM/scratch_high_fb/']
-# all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [None, None]
-# all_load_from = [load_path, None,]
-
-
-
-# all_conditions_names = ['offshelf_LSTM/vanilla/', 'hybrid_LSTM/scratch/']
-# all_net_names = ['BigReimplementationPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [False, None]
-# all_load_from = [None, None,]
-
-# These are for seeds 4 to 8
-
-# For main plot
-# all_conditions_names = ['offshelf_LSTM/vanilla/']
-# all_net_names = ['BigReimplementationPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [False, None]
 # all_load_from = [None, load_path,]
 
 
-all_conditions_names = ['minimal_model/all_losses/', 'hybrid_LSTM/pretrained_high_fb/', 'minimal_model/no_fb_losses/']
-all_net_names = ['BigResetNetwork', 'BigHybridPathIntegrator', 'BigResetNetwork']
-all_use_start_rep = [False, None, False]
-all_load_from = [None, load_path, None]
+
+all_conditions_names = ['hybrid_LSTM/pretrained_high_fb/', 'hybrid_LSTM/scratch_high_fb/', 'offshelf_LSTM/vanilla/', ]
+all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator', 'BigReimplementationPathIntegrator', ]
+all_use_start_rep = [None, None, False]
+all_load_from = [load_path, None, None,]
 
 
 all_params = zip(all_conditions_names, all_net_names, all_use_start_rep, all_load_from)
-
-
-
-# TODO: run hybrid_LSTM
 
 
 class do_all:
@@ -125,21 +79,26 @@ class do_all:
                     params['net_params']['net_name'] = net_name
                     params['net_params']['options']['seed'] = seed
 
-                    if net_name == 'BigReimplementationPathIntegrator':
-                        params['net_params']['options']['recurrence_type'] = 'LSTM'
-                        params['net_params']['options']['recurrence_args'] = {'hidden_size': None, 'num_layers': 1}
-                        params['net_params']['options']['use_reimplementation'] = False
+                    params['net_params']['options']['recurrence_type'] = 'LSTM'
+                    params['net_params']['options']['recurrence_args'] = {'hidden_size': None, 'num_layers': 1}
+                    params['net_params']['options']['use_reimplementation'] = False
 
-                    params['net_params']['options']['load_from'] = None
                     params['net_params']['options']['use_start_rep_explicitly'] = use_start_rep
+                    params['net_params']['options']['load_from'] = None
 
                     if load_from is not None:
                         if net_name == 'BigHybridPathIntegrator':
+                            # params['net_params']['options']['load_from'] = load_from + 'error_{}_avail_{}/seed{}/final_net.tch'.format(reinference_error, image_availability, seed)
                             params['net_params']['options']['load_from'] = load_from + 'error_{}_avail_{}/seed{}/best_net.tch'.format(reinference_error, image_availability, seed)
                         else:
                             params['net_params']['options']['load_encoders_from'] = load_from + 'error_{}_avail_{}/seed{}/best_net.tch'.format(reinference_error, image_availability, seed)
                     else:
                         params['net_params']['options']['load_encoders_from'] = None
+
+
+
+
+
 
                     params['net_params']['options']['save_folder'] = PATH + cond_name + 'error_{}_avail_{}/'.format(reinference_error, image_availability)
 
@@ -151,6 +110,7 @@ class do_all:
 
 
                     params['train_params']['pi_loss_options']['epoch_len'] = 40
+
                     params['train_params']['pi_loss_options']['corruption_rate'] = .5
                     params['train_params']['pi_loss_options']['batch_size'] = 32
                     params['train_params']['pi_loss_options']['im_availability'] = image_availability
@@ -166,11 +126,14 @@ class do_all:
                         params['train_params']['tuple_loss_options']['batch_size'] = 4
                     params['train_params']['tuple_loss_options']['use_full_space'] = False # NOTE: this means the tupleLoss uses real transitions only; any performance improvement at long distances comes from PI loss only
 
+
+
+
+
+
                     # These are the defaults: all learning rates equal, no loading, nothing changing during training
                     params['train_params']['optimizer_params_scheduler_options'] = {}
                     params['train_params']['losses_weights_scheduler_options'] = {}
-
-
                     params['train_params']['n_epochs'] = 4000
 
                     if net_name == 'BigReimplementationPathIntegrator':
@@ -201,12 +164,14 @@ class do_all:
                     with open(params['net_params']['options']['save_folder'] + 'full_params.json', 'w+') as f:
                         json.dump(params, f, indent=4)
 
-                    if net_name == 'BigReimplementationPathIntegrator':
+                    if params['net_params']['net_name'] == 'BigReimplementationPathIntegrator':
+                        logging.critical('Trained OffshelfEndToEnd [seed{}]'.format(seed))
                         trainer = EndToEndTrainerOffshelf(params, seed)
                     elif params['net_params']['net_name'] == 'BigHybridPathIntegrator':
                         logging.critical('Trained HybridEndToEnd [seed{}]'.format(seed))
                         trainer = EndToEndTrainerHybrid(params, seed)
                     else:
+                        logging.critical('Trained EndToEnd [seed{}]'.format(seed))
                         trainer = EndToEndTrainer(params, seed)
 
                     trainer.train()
@@ -222,8 +187,7 @@ if __name__ == '__main__':
 
     n_threads = 4
     n_seeds = 4
-    # start_seed = 0
-    start_seed = 4
+    start_seed = 0
 
     multiprocessing.set_start_method('spawn')
     install_mp_handler()

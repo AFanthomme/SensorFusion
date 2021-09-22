@@ -1071,17 +1071,17 @@ def do_latex_table(protocols=['offshelf_LSTM/pretrained', 'minimal_model/all_los
 
     }
 
+    n_errors = len(reinference_errors)
+    n_avails = len(image_availabilities)
 
+    blob_errors_noiseless = np.zeros((len(protocols), n_errors, n_avails, n_trajs*n_seeds, epoch_len))
+    blob_errors_noiseless = np.zeros((len(protocols), n_errors, n_avails, n_seeds, epoch_len))
+    blob_pearsons_noiseless = np.zeros((len(protocols), n_errors, n_avails,n_seeds, rep_size))
+    blob_pearsons_visual = np.zeros((len(protocols), n_errors, n_avails, n_seeds, rep_size))
 
     base_path = 'out/{}_{}/'.format(map, layout)
-    for protocol in protocols:
+    for protocol_idx, protocol in enumerate(protocols):
         training_type = '_'.join(protocol.split('/'))
-
-
-        n_errors = len(reinference_errors)
-        n_avails = len(image_availabilities)
-
-        # TODO : read from new subfolder, add "visual pearson"
 
         all_errors_noiseless = np.zeros((n_errors, n_avails, n_trajs*n_seeds, epoch_len))
         all_errors_noiseless_no_images = np.zeros((n_errors, n_avails, n_trajs*n_seeds, epoch_len))
@@ -1179,6 +1179,10 @@ def do_latex_table(protocols=['offshelf_LSTM/pretrained', 'minimal_model/all_los
                 dict['pearsons_visual_mean'].append(pearsons_visual.mean())
                 dict['pearsons_visual_std'].append(pearsons_visual.std())
 
+                blob_errors_noiseless[protocol_idx] = all_errors_noiseless.mean(axis=2)
+                blob_pearsons_noiseless[protocol_idx] = all_pearsons_noiseless
+                blob_pearsons_visual[protocol_idx] = all_pearsons_visual
+
     for key, val in dict.items():
         print(key, len(val))
 
@@ -1219,6 +1223,37 @@ def do_latex_table(protocols=['offshelf_LSTM/pretrained', 'minimal_model/all_los
             f.write(' & {:.2} $\pm$ {:.2}'.format(frame['pearsons_noiseless_mean'][idx], frame['pearsons_noiseless_std'][idx]))
         f.write('\\\\\n')
 
+    from scipy.stats import ttest_ind
+    from seaborn import heatmap
+
+
+    quantity_labels = ['errors_short', 'errors_long', 'pearsons_visual', 'pearsons_pi']
+    protocol_labels = [' '.join(p.split('_')) for p in protocols]
+
+
+    for data, label in zip([blob_errors_noiseless[:,-1, -1, :, :reset_every],
+        blob_errors_noiseless, blob_pearsons_visual, blob_pearsons_noiseless],
+        quantity_labels):
+
+        os.makedirs(base_path+exp_group+'/stats', exist_ok=True)
+        test_results = np.zeros((len(protocols), len(protocols)))
+        for i in range(len(protocols)):
+            for j in range(i, len(protocols)):
+                protocol_one, protocol_two = protocols[i], protocols[j]
+                # print(ttest_ind(data[i].flatten(), data[j].flatten(), equal_var=False).pvalue)
+                test_results[i,j] = ttest_ind(data[i].flatten(), data[j].flatten(), equal_var=False).pvalue
+                test_results[j,i] = test_results[i,j]
+
+                fig, axes = plt.subplots(1,2, figsize=(10,5))
+                axes[0].hist(data[i].flatten())
+                axes[1].hist(data[j].flatten())
+
+                plt.savefig(base_path+exp_group+'/stats/{}_between_{}_and_{}.pdf'.format(label, '_'.join(protocols[i].split('/')), '_'.join(protocols[j].split('/'))))
+
+        plt.figure()
+        ax = heatmap(test_results,annot=True, xticklabels=protocol_labels, yticklabels=protocol_labels)#, fmt='{:.2}')
+        plt.savefig((base_path+exp_group+'/stats/{}_{}_welch_test_results.pdf'.format(table_name, label)))
+
 
 
 if __name__ == '__main__':
@@ -1245,13 +1280,63 @@ if __name__ == '__main__':
     #         offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='minimal_model/no_fb_losses/error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
     #         offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='offshelf_LSTM/pretrained_no_start_rep/error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
     #         offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='offshelf_LSTM/use_start_rep_no_pretrain/error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-
+    #
     # for protocol in ['offshelf_LSTM/pretrained', 'minimal_model/all_losses', 'minimal_model/no_fb_losses', 'offshelf_LSTM/pretrained_no_start_rep', 'offshelf_LSTM/use_start_rep_no_pretrain']:
     #     # make_long_experiment_error_figures(exp_group='long_experiment', protocol=protocol, collapsed=True)
     #    make_long_experiment_error_figures(exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2)
-
+    #
     # do_latex_table(exp_group='long_experiment', im_availability=.2)
+    #
+    #
 
+
+
+    reinference_errors = [0.]
+    image_availabilities = [.2]
+    test_avail = .2
+
+    protocols = [
+            'offshelf_LSTM/pretrained/',              # For LSTM comparison
+            'offshelf_LSTM/pretrained_no_start_rep/',
+            'offshelf_LSTM/use_start_rep_no_pretrain/',
+            'hybrid_LSTM/scratch_high_fb/',
+
+            'minimal_model/all_losses/', # For main results
+            'minimal_model/no_fb_losses/',
+            'offshelf_LSTM/vanilla/',
+            'hybrid_LSTM/pretrained/',
+                ]
+
+    # for protocol in protocols:
+    #     for reinference_error in reinference_errors:
+    #         for image_availability in image_availabilities:
+    #             offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
+
+
+    # for protocol in protocols:
+    #    make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
+    #    # make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=8)
+
+
+    # protocols = [
+    #             'minimal_model/all_losses/',
+    #             'minimal_model/no_fb_losses/',
+    #             'offshelf_LSTM/vanilla/',
+    #             'hybrid_LSTM/pretrained/',
+    #             ]
+    # table_name = 'minimal_model'
+    #
+    # do_latex_table(map='SnakePath', reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
+    #
+    # protocols = [
+    #             # 'hybrid_LSTM/pretrained/', # Add "end-to-end"
+    #             'offshelf_LSTM/pretrained_frozen/',
+    #             'offshelf_LSTM/pretrained_no_start_rep/',
+    #             'offshelf_LSTM/use_start_rep_no_pretrain/',
+    #             ]
+    # table_name = 'lstm_details'
+    #
+    # do_latex_table(map='SnakePath', reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
 
 
     ########################################################
@@ -1262,37 +1347,43 @@ if __name__ == '__main__':
 
 
 
-    # reinference_errors = [0.]
-    # image_availabilities = [.2]
-    # test_avail = .2
+    reinference_errors = [0.]
+    image_availabilities = [.2]
+    test_avail = .2
     #
     # protocols = ['minimal_model/all_losses/',
     #             'minimal_model/no_fb_losses/',
     #             'offshelf_LSTM/pretrained/',
-    #             'offshelf_LSTM/pretrained_no_start_rep/',
     #             'offshelf_LSTM/use_start_rep_no_pretrain/',
+    #             'offshelf_LSTM/pretrained_no_start_rep/',
     #             'offshelf_LSTM/pretrained_frozen/']
     #
-    # for protocol in protocols:
-    #     for reinference_error in reinference_errors:
-    #         for image_availability in image_availabilities:
-    #             offline_study_errors(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-    #
-    # for protocol in protocols:
-    #    make_long_experiment_error_figures(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
+
+    protocols = [ 'hybrid_LSTM/pretrained_high_fb/',]
+
+    for protocol in protocols:
+        for reinference_error in reinference_errors:
+            for image_availability in image_availabilities:
+                offline_study_errors(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
+
+    for protocol in protocols:
+       make_long_experiment_error_figures(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
 
 
     protocols = [
                 'minimal_model/all_losses/',
                 'minimal_model/no_fb_losses/',
-                'offshelf_LSTM/pretrained/',
-                'offshelf_LSTM/use_start_rep_no_pretrain/' # Replace with "end-to-end"
+                # 'offshelf_LSTM/pretrained/',
+                # 'hybrid_LSTM/pretrained/',
+                'hybrid_LSTM/pretrained_high_fb/',
+                'offshelf_LSTM/use_start_rep_no_pretrain/' # Replace with "vanilla"
                 ]
     table_name = 'minimal_model'
 
     do_latex_table(map='DoubleDonut', reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
 
     protocols = [
+                'hybrid_LSTM/pretrained/',
                 'offshelf_LSTM/pretrained/',
                 'offshelf_LSTM/pretrained_no_start_rep/',
                 'offshelf_LSTM/use_start_rep_no_pretrain/',

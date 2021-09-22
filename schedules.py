@@ -148,6 +148,40 @@ class AlternatingSchedulerWeights:
             self.idx = self.idx +  1
             return self.current_weights, True
 
+
+class HybridDefaultSchedulerLR:
+    def __init__(self, **kwargs):
+        # self.current_lr = [5e-4, 5e-4, 5e-4, 5e-4, 1e-4]
+        # recurrence, representation, z_encoder, decoder, forward
+        self.current_lr = [5e-4, 5e-4, 5e-4, 5e-4, 5e-4]
+        # self.current_lr = [0., 0.,0.,0.,0.,]
+
+    def get_current_lr(self, step):
+        return self.current_lr, False
+
+class HybridDefaultSchedulerWeights:
+    def __init__(self, **kwargs):
+        self.current_weights = [1., 1., 0., 1, 0, 0]
+
+    def get_current_weights(self, step):
+        return self.current_weights, False
+
+
+class HybridLowModelsSchedulerWeights:
+    def __init__(self, **kwargs):
+        self.current_weights = [.1, .1, 0., 1, 0, 0]
+
+    def get_current_weights(self, step):
+        return self.current_weights, False
+
+
+class HybridHighModelsSchedulerWeights:
+    def __init__(self, **kwargs):
+        self.current_weights = [10., 10., 0., 1, 0, 0]
+
+    def get_current_weights(self, step):
+        return self.current_weights, False
+
 lr_scheduler_list = {
                     'default': DefaultSchedulerLR,
                     'default_no_fb': DefaultNoFBSchedulerLR,
@@ -156,6 +190,7 @@ lr_scheduler_list = {
                     'noisy_double_donut': SchedulerLRForNoisyDoubleDonut,
                     'offshelf_default': OffshelfDefaultSchedulerLR,
                     'offshelf_dont_touch_encoding': OffshelfDontTouchEncodingSchedulerLR,
+                    'hybrid_default': HybridDefaultSchedulerLR,
                     }
 
 weights_scheduler_list = {
@@ -164,4 +199,7 @@ weights_scheduler_list = {
                          'annealed': AnnealedSchedulerWeights,
                          'alternating': AlternatingSchedulerWeights,
                          'noisy_double_donut': SchedulerWeightsForNoisyDoubleDonut,
+                         'hybrid_default': HybridDefaultSchedulerWeights,
+                         'hybrid_low_models': HybridLowModelsSchedulerWeights,
+                         'hybrid_high_models': HybridHighModelsSchedulerWeights,
                          }
