@@ -10,6 +10,15 @@ class DefaultSchedulerLR:
     def get_current_lr(self, step):
         return self.current_lr, False
 
+class DefaultNoRecSchedulerLR:
+    def __init__(self, **kwargs):
+        # self.current_lr = [5e-4, 5e-4, 5e-4, 5e-4, 1e-4]
+        # recurrence, representation, z_encoder, decoder
+        self.current_lr = [0., 1e-3, 0., 1e-3, 1e-4]
+
+    def get_current_lr(self, step):
+        return self.current_lr, False
+
 class DefaultSchedulerWeights:
     def __init__(self, **kwargs):
         self.current_weights = [10, 10, 0., 1, 0, 0]
@@ -34,6 +43,20 @@ class DefaultNoFBSchedulerWeights:
         return self.current_weights, False
 
 
+class DefaultNoPISchedulerWeights:
+    def __init__(self, **kwargs):
+        self.current_weights = [1., 1., 0., 0, 0, 0]
+
+    def get_current_weights(self, step):
+        return self.current_weights, False
+
+class DefaultNoPINoForwardSchedulerWeights:
+    def __init__(self, **kwargs):
+        self.current_weights = [1., 0., 0., 0, 0, 0]
+
+    def get_current_weights(self, step):
+        return self.current_weights, False
+
 class OffshelfDefaultSchedulerLR:
     def __init__(self, **kwargs):
         # self.current_lr = [5e-4, 5e-4, 5e-4, 5e-4, 1e-4]
@@ -42,6 +65,8 @@ class OffshelfDefaultSchedulerLR:
 
     def get_current_lr(self, step):
         return self.current_lr, False
+
+
 
 
 class OffshelfDontTouchEncodingSchedulerLR:
@@ -185,6 +210,7 @@ class HybridHighModelsSchedulerWeights:
 lr_scheduler_list = {
                     'default': DefaultSchedulerLR,
                     'default_no_fb': DefaultNoFBSchedulerLR,
+                    'default_no_rec': DefaultNoRecSchedulerLR,
                     'annealed': AnnealedSchedulerLR,
                     'alternating': AlternatingSchedulerLR,
                     'noisy_double_donut': SchedulerLRForNoisyDoubleDonut,
@@ -196,6 +222,8 @@ lr_scheduler_list = {
 weights_scheduler_list = {
                          'default': DefaultSchedulerWeights,
                          'default_no_fb': DefaultNoFBSchedulerWeights,
+                         'default_no_pi': DefaultNoPISchedulerWeights,
+                         'default_no_pi_no_fwd': DefaultNoPINoForwardSchedulerWeights,
                          'annealed': AnnealedSchedulerWeights,
                          'alternating': AlternatingSchedulerWeights,
                          'noisy_double_donut': SchedulerWeightsForNoisyDoubleDonut,

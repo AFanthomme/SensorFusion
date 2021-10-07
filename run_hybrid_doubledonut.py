@@ -48,10 +48,16 @@ load_path = PATH + 'minimal_model/all_losses/'
 
 
 
-all_conditions_names = ['hybrid_LSTM/pretrained_high_fb/', 'hybrid_LSTM/scratch_high_fb/', 'offshelf_LSTM/vanilla/', ]
-all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator', 'BigReimplementationPathIntegrator', ]
-all_use_start_rep = [None, None, False]
-all_load_from = [load_path, None, None,]
+# all_conditions_names = ['hybrid_LSTM/pretrained_high_fb/', 'hybrid_LSTM/scratch_high_fb/', 'offshelf_LSTM/vanilla/', ]
+# all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator', 'BigReimplementationPathIntegrator', ]
+# all_use_start_rep = [None, None, False]
+# all_load_from = [load_path, None, None,]
+
+# Running on riley
+all_conditions_names = ['minimal_model/all_losses/', 'minimal_model/no_fb_losses/', 'hybrid_LSTM/pretrained_high_fb/', 'offshelf_LSTM/vanilla/', ]
+all_net_names = ['BigResetNetwork', 'BigResetNetwork', 'BigHybridPathIntegrator', 'BigReimplementationPathIntegrator', ]
+all_use_start_rep = [None, None, None, False]
+all_load_from = [None, None, load_path, None, ]
 
 
 all_params = zip(all_conditions_names, all_net_names, all_use_start_rep, all_load_from)
@@ -187,7 +193,8 @@ if __name__ == '__main__':
 
     n_threads = 4
     n_seeds = 4
-    start_seed = 0
+    # start_seed = 0
+    start_seed = 4
 
     multiprocessing.set_start_method('spawn')
     install_mp_handler()

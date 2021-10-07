@@ -663,8 +663,8 @@ def offline_study_dynamic_representation(map='SnakePath', layout='Default', prot
 def offline_study_errors(map='SnakePath', layout='Default', exp_group='end_to_end', protocol='default', batch_size=64, n_trajs=512, epoch_len=50, step_size=.5, start_seed=0, n_seeds=4, im_availability=.1, corruption_rate=.5, noise=0.05, resetting_type='fixed', use_reimplementation=None, collapsed=False):
     base_path = 'out/{}_{}/'.format(map, layout)
     path = 'out/{}_{}/{}/{}/'.format(map, layout, exp_group, protocol)
+    figs_path = 'out/{}_{}/{}/figures/{}/'.format(map, layout, exp_group, protocol)
 
-    print(path)
     with open(path+'full_params.json') as f:
         all_params = json.load(f)
         env = FixedRewardWorld(**all_params['env_params'], seed=777)
@@ -823,6 +823,7 @@ def offline_study_errors(map='SnakePath', layout='Default', exp_group='end_to_en
                 del internal_states, outputs_no_images
 
 
+            representations_tmp = deepcopy(pearsons_noiseless)
             # Now, actually compute the pearsons
             X = np.reshape(absolute_positions, (-1, 2))
             for id, container in zip(['pearsons_noisy', 'pearsons_noisy_no_images', 'pearsons_noiseless', 'pearsons_noiseless_no_images', 'pearsons_visual'],[pearsons_noisy, pearsons_noisy_no_images, pearsons_noiseless, pearsons_noiseless_no_images, pearsons_visual]):
@@ -853,10 +854,8 @@ def offline_study_errors(map='SnakePath', layout='Default', exp_group='end_to_en
             os.makedirs(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}'.format(seed, epoch_len, step_size, n_trajs, im_availability), exist_ok=True)
             np.save(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/errors_noiseless.npy'.format(seed, epoch_len, step_size, n_trajs, im_availability), errors_noiseless)
             np.save(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/errors_noiseless_no_images.npy'.format(seed, epoch_len, step_size, n_trajs, im_availability), errors_noiseless_no_images)
-
             np.save(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/errors_noisy.npy'.format(seed, epoch_len, step_size, n_trajs, im_availability), errors_noisy)
             np.save(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/errors_noisy_no_images.npy'.format(seed, epoch_len, step_size, n_trajs, im_availability), errors_noisy_no_images)
-
             logging.critical('At save time, pearsons noisy shape {}, min/max/mean/std: {}/{}/{}/{}'.format(pearsons_noisy.shape, pearsons_noisy.min(), pearsons_noisy.max(), pearsons_noisy.mean(), pearsons_noisy.std()))
             np.save(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/pearsons_noisy.npy'.format(seed, epoch_len, step_size, n_trajs, im_availability), pearsons_noisy)
             logging.critical('At save time, pearsons_noisy_no_images shape {}, min/max/mean/std: {}/{}/{}/{}'.format(pearsons_noisy_no_images.shape, pearsons_noisy_no_images.min(), pearsons_noisy_no_images.max(), pearsons_noisy_no_images.mean(), pearsons_noisy_no_images.std()))
@@ -869,42 +868,104 @@ def offline_study_errors(map='SnakePath', layout='Default', exp_group='end_to_en
             logging.critical('At save time, pearsons_visual shape {}, min/max/mean/std: {}/{}/{}/{}'.format(pearsons_visual.shape, pearsons_visual.min(), pearsons_visual.max(), pearsons_visual.mean(), pearsons_visual.std()))
             np.save(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/pearsons_visual.npy'.format(seed, epoch_len, step_size, n_trajs, im_availability), pearsons_visual)
 
+            # Now in displacement coordinates
+            X = np.reshape(cumulated_actions, (-1, 2))
+            y = np.reshape(representations_tmp, (-1, n))
+            model = LinearRegression()
+            logging.critical('starting fit of linear regression')
+            model.fit(X, y)
+            preds = model.predict(X)
+            scores = r2_score(y, preds, multioutput='raw_values')
+
+            np.save(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/pearsons_displacement_coordinates_noiseless.npy'.format(seed, epoch_len, step_size, n_trajs, im_availability), scores)
+
+
+
+
+
+
+
         seismic = plt.get_cmap('seismic')
         # plop = np.stack([absolute_positions]*4, axis=0)
         # logging.critical(plop.shape)
         all_global_positions = np.reshape(absolute_positions, (-1, 2))
         # Also do representation plots at the end
-        os.makedirs(path+'representation/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}'.format(epoch_len, step_size, n_trajs, im_availability), exist_ok=True)
+        # os.makedirs(path+'representation/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}'.format(epoch_len, step_size, n_trajs, im_availability), exist_ok=True)
+        os.makedirs(figs_path+'representation/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}'.format(epoch_len, step_size, n_trajs, im_availability), exist_ok=True)
         for seed in range(n_seeds):
             for neuron in range(n_neurons):
                 neuron_visual_representation = all_bkp_representations[ seed, :, :, neuron].flatten()
                 norm = matplotlib.colors.Normalize(vmin=neuron_visual_representation.min(), vmax=neuron_visual_representation.max())
 
                 fig, ax = plt.subplots(1, 1, figsize=(6,6))
-                ax = env.render_template(ax_to_use=ax)
+                ax = env.render_template(ax_to_use=ax, add_goal=False)
                 neuron_colors = seismic(norm(neuron_visual_representation)).reshape((-1, 4))
                 ax.scatter(all_global_positions[:,0], all_global_positions[:,1], c=neuron_colors, s=256000/(n_trajs*epoch_len))
-                fig.savefig(path+'representation/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}/seed_{}_neuron_{}.png'.format(epoch_len, step_size, n_trajs, im_availability, seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
+                # fig.savefig(path+'representation/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}/seed_{}_neuron_{}.png'.format(epoch_len, step_size, n_trajs, im_availability, seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
+                fig.savefig(figs_path + 'representation/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}/seed_{}_neuron_{}.png'.format(epoch_len, step_size, n_trajs, im_availability, seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
                 plt.close('all')
 
 
         for idx, name in enumerate(['noisy', 'noisy_no_images', 'noiseless', 'noiseless_no_images']):
-            os.makedirs(path+'representation/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(epoch_len, step_size, n_trajs, im_availability)+name, exist_ok=True)
+            # os.makedirs(path+'representation/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(epoch_len, step_size, n_trajs, im_availability)+name, exist_ok=True)
+            os.makedirs(figs_path+'representation/{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(name, epoch_len, step_size, n_trajs, im_availability), exist_ok=True)
             for seed in range(n_seeds):
                 for neuron in range(n_neurons):
                     neuron_activations = all_internal_states[idx, seed, :, :, neuron].flatten()
 
                     norm = matplotlib.colors.Normalize(vmin=neuron_activations.min(), vmax=neuron_activations.max())
-
                     fig, ax = plt.subplots(1, 1, figsize=(6,6))
-                    ax = env.render_template(ax_to_use=ax)
+                    ax = env.render_template(ax_to_use=ax, add_goal=False)
                     neuron_colors = seismic(norm(neuron_activations)).reshape((-1, 4))
                     ax.scatter(all_global_positions[:,0], all_global_positions[:,1], c=neuron_colors, s=256000/(n_trajs*epoch_len))
 
-                    fig.savefig(path+'representation/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(epoch_len, step_size, n_trajs, im_availability)+name+'/seed_{}_neuron_{}.png'.format(seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
+                    # fig.savefig(path+'representation/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(epoch_len, step_size, n_trajs, im_availability)+name+'/seed_{}_neuron_{}.png'.format(seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
+                    fig.savefig((figs_path+'representation/{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(name, epoch_len, step_size, n_trajs, im_availability)+'/seed_{}_neuron_{}.png'.format(seed, neuron))) # need to save as png, otherwise it makes an absurdly large pdf
                     plt.close('all')
 
 
+
+
+        # Now in displacement coordinates
+
+        all_displacements = np.reshape(cumulated_actions, (-1, 2))
+        os.makedirs(figs_path+'representation_in_displacement_coords/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(epoch_len, step_size, n_trajs, im_availability), exist_ok=True)
+
+        for seed in range(n_seeds):
+            for neuron in range(n_neurons):
+                neuron_visual_representation = all_bkp_representations[seed, :, :, neuron].flatten()
+                norm = matplotlib.colors.Normalize(vmin=neuron_visual_representation.min(), vmax=neuron_visual_representation.max())
+
+                fig, ax = plt.subplots(1, 1, figsize=(6,6))
+                # ax = env.render_template(ax_to_use=ax, add_goal=False)
+                neuron_colors = seismic(norm(neuron_visual_representation)).reshape((-1, 4))
+                # ax.scatter(all_global_positions[:,0], all_global_positions[:,1], c=neuron_colors, s=256000/(n_trajs*epoch_len))
+                ax.scatter(all_displacements[:,0], all_displacements[:,1], c=neuron_colors, s=256000/(n_trajs*epoch_len))
+                plt.axis('off')
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                # fig.savefig(path+'representation/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}/seed_{}_neuron_{}.png'.format(epoch_len, step_size, n_trajs, im_availability, seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
+                fig.savefig(figs_path+'representation_in_displacement_coords/visual/len_{}_step_{}_ntrajs__{}_im_avail_{}/seed_{}_neuron_{}.png'.format(epoch_len, step_size, n_trajs, im_availability, seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
+                plt.close('all')
+
+
+        for idx, name in enumerate(['noisy', 'noisy_no_images', 'noiseless', 'noiseless_no_images']):
+            # os.makedirs(path+'representation/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(epoch_len, step_size, n_trajs, im_availability)+name, exist_ok=True)
+            os.makedirs(figs_path+'representation_in_displacement_coords/{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(name, epoch_len, step_size, n_trajs, im_availability), exist_ok=True)
+            for seed in range(n_seeds):
+                for neuron in range(n_neurons):
+                    neuron_activations = all_internal_states[idx, seed, :, :, neuron].flatten()
+                    norm = matplotlib.colors.Normalize(vmin=neuron_activations.min(), vmax=neuron_activations.max())
+                    fig, ax = plt.subplots(1, 1, figsize=(6,6))
+                    # ax = env.render_template(ax_to_use=ax, add_goal=False)
+                    neuron_colors = seismic(norm(neuron_activations)).reshape((-1, 4))
+                    plt.axis('off')
+                    ax.get_xaxis().set_visible(False)
+                    ax.get_yaxis().set_visible(False)
+                    # ax.scatter(all_global_positions[:,0], all_global_positions[:,1], c=neuron_colors, s=256000/(n_trajs*epoch_len))
+                    ax.scatter(all_displacements[:,0], all_displacements[:,1], c=neuron_colors, s=256000/(n_trajs*epoch_len))
+                    fig.savefig(figs_path+'representation_in_displacement_coords/{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/'.format(name, epoch_len, step_size, n_trajs, im_availability)+'/seed_{}_neuron_{}.png'.format(seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
+                    plt.close('all')
 
 
             logging.critical(pearsons_noisy_no_images.shape)
@@ -1211,13 +1272,13 @@ def do_latex_table(protocols=['offshelf_LSTM/pretrained', 'minimal_model/all_los
         f.write('\\\\\n')
 
 
-        f.write('Pearsons (visual)')
+        f.write('$R^2$ (visual)')
         for idx, protocol in enumerate(protocols): # works because we know the order...
             # print(frame['pearsons_noiseless_mean'])
             f.write(' & {:.2} $\pm$ {:.2}'.format(frame['pearsons_visual_mean'][idx], frame['pearsons_visual_std'][idx]))
         f.write('\\\\\n')
 
-        f.write('Pearsons (PI)')
+        f.write('$R^2$ (PI)')
         for idx, protocol in enumerate(protocols): # works because we know the order...
             # print(frame['pearsons_noiseless_mean'])
             f.write(' & {:.2} $\pm$ {:.2}'.format(frame['pearsons_noiseless_mean'][idx], frame['pearsons_noiseless_std'][idx]))
@@ -1255,11 +1316,274 @@ def do_latex_table(protocols=['offshelf_LSTM/pretrained', 'minimal_model/all_los
         plt.savefig((base_path+exp_group+'/stats/{}_{}_welch_test_results.pdf'.format(table_name, label)))
 
 
+def do_coordinate_systems_table(protocols=['offshelf_LSTM/pretrained', 'minimal_model/all_losses', 'minimal_model/no_fb_losses', 'offshelf_LSTM/pretrained_no_start_rep', 'offshelf_LSTM/use_start_rep_no_pretrain']
+                    , map='SnakePath', layout='Default', exp_group='end_to_end', rep_size=512, protocol='default', batch_size=64, n_trajs=512, epoch_len=100, table_name='default',
+                     step_size=.5, start_seed=0, n_seeds=4, im_availability=.1, corruption_rate=.5, noise=0.05, resetting_type='fixed', use_reimplementation=None, collapsed=False,
+                     reinference_errors = [0., .02, .04, .08], image_availabilities = [0., .2, .5, 1.]):
+    dict = {
+        'protocol': [],
+
+        'pearsons_noiseless_mean': [],
+        'pearsons_noiseless_std': [],
+        'protocol': [],
+        'train availability': [],
+        'test availability': [],
+        'train noise': [],
+        'test noise': [],
+
+    }
+
+    n_errors = len(reinference_errors)
+    n_avails = len(image_availabilities)
+
+    blob_pearsons_noiseless = np.zeros((len(protocols), n_errors, n_avails,n_seeds, rep_size))
+
+
+    base_path = 'out/{}_{}/'.format(map, layout)
+    for protocol_idx, protocol in enumerate(protocols):
+        training_type = '_'.join(protocol.split('/'))
+
+        all_pearsons_noiseless = np.zeros((n_errors, n_avails,n_seeds, rep_size))
+
+        reset_every = int(1./im_availability)
+        ims_to_perturb = ((tch.tensor(range(epoch_len+1))-1).fmod(reset_every)!=0).unsqueeze(0).repeat((n_trajs, 1)).float()
+        ims_to_perturb[:, 0] = tch.zeros_like(ims_to_perturb[:, 0])
+
+        for error_idx, train_reinference_error in enumerate(reinference_errors):
+            for avail_idx, train_image_availability in enumerate(image_availabilities):
+                path = 'out/{}_{}/{}/{}/error_{}_avail_{}/'.format(map, layout, exp_group, protocol, train_reinference_error, train_image_availability)
+                with tch.set_grad_enabled(False):
+                    for seed in range(n_seeds):
+                        pearsons_noiseless = np.load(path+'seed{}/len_{}_step_{}_ntrajs__{}_im_avail_{}/pearsons_displacement_coordinates_noiseless.npy'.format(seed, epoch_len, step_size, n_trajs, im_availability))
+                        all_pearsons_noiseless[error_idx, avail_idx, seed] = pearsons_noiseless
+                        logging.critical('{}, min/max/mean/std: {}/{}/{}/{}'.format(pearsons_noiseless.shape, pearsons_noiseless.min(), pearsons_noiseless.max(), pearsons_noiseless.mean(), pearsons_noiseless.std()))
+
+                dict['protocol'].append(protocol)
+                dict['train availability'].append(train_image_availability)
+                dict['test availability'].append(im_availability)
+                dict['train noise'].append(train_reinference_error)
+                dict['test noise'].append(noise)
+                pearsons_noiseless = all_pearsons_noiseless[error_idx, avail_idx]
+                dict['pearsons_noiseless_mean'].append(pearsons_noiseless.mean())
+                dict['pearsons_noiseless_std'].append(pearsons_noiseless.std())
+                blob_pearsons_noiseless[protocol_idx] = all_pearsons_noiseless
+
+
+    for key, val in dict.items():
+        print(key, len(val))
+
+    frame = pd.DataFrame(dict)
+    print(frame)
+    frame.to_csv(base_path+exp_group+'/data_im_availability_{}_noise_{}_resetting_{}.csv'.format(im_availability, noise, resetting_type, training_type))
+
+
+    print(base_path+exp_group+'/{}_coordinate_systems_table.tex'.format(table_name))
+    with open(base_path+exp_group+'/{}_coordinate_systems_table.tex'.format(table_name), 'w+') as f:
+        f.write(' ')
+        for protocol in protocols:
+            f.write(' & ' +protocol)
+        f.write('\\\\\n')
+
+        f.write('$R^2$ (absolute)')
+        for idx, protocol in enumerate(protocols): # works because we know the order...
+            # print(frame['pearsons_noiseless_mean'])
+            f.write(' & {:.2} $\pm$ {:.2}'.format(frame['pearsons_noiseless_mean'][idx], frame['pearsons_noiseless_std'][idx]))
+        f.write('\\\\\n')
+
+        f.write('$R^2$ (displacement)')
+        for idx, protocol in enumerate(protocols): # works because we know the order...
+            # print(frame['pearsons_noiseless_mean'])
+            f.write(' & {:.2} $\pm$ {:.2}'.format(frame['pearsons_noiseless_mean'][idx], frame['pearsons_noiseless_std'][idx]))
+        f.write('\\\\\n')
+
+
+
+def make_with_out_forward_figure(map='SnakePath', layout='Default', exp_group='end_to_end', rep_size=512, n_reps=5, protocols=['without_forward', 'with_forward'],
+                        batch_size=512, n_points=4096, epoch_len=100, step_size=.5, start_seed=0, n_seeds=8):
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    seismic = plt.get_cmap('seismic')
+
+    base_path = 'out/{}_{}/'.format(map, layout)
+
+    all_representations = np.zeros((2, 3*n_points, n_seeds, rep_size)) # Don't waste any of our computations
+    all_global_positions = np.zeros((3*n_points, n_seeds, 2))
+
+    displacements = np.zeros((2, n_points, n_seeds, 2))
+    displacements_generalization = np.zeros((2, n_points, n_seeds, 2))
+
+    errors = np.zeros((2, n_points, n_seeds))
+    errors_generalization = np.zeros((2, n_points, n_seeds))
+
+    all_scores = np.zeros((2, n_seeds, rep_size))
+
+    semi_base_path = 'out/{}_{}/{}/'.format(map, layout, exp_group)
+    for prot_idx, protocol in enumerate(protocols):
+        path = 'out/{}_{}/{}/{}/'.format(map, layout, exp_group, protocol)
+        figs_path = path + 'figures/'
+        errors_figs_path = path + 'figures/errors/'
+        reps_figs_path = path + 'figures/reps/'
+        os.makedirs(figs_path, exist_ok=True)
+        os.makedirs(errors_figs_path, exist_ok=True)
+        os.makedirs(reps_figs_path, exist_ok=True)
+
+
+
+        print(path)
+        with open(path+'full_params.json') as f:
+            all_params = json.load(f)
+            env = FixedRewardWorld(**all_params['env_params'], seed=777)
+            net = network_register[all_params['net_params']['net_name']](**all_params['net_params']['options'])
+
+        start_positions = np.random.uniform(-env.scale, env.scale, size=(n_points, 2))
+        start_rooms = np.random.randint(env.n_rooms, size=(n_points,))
+
+        # This will test in training conditions
+        actions = np.random.uniform(-step_size, step_size, size=(n_points, 1, 2))
+        rooms, positions, actions = env.static_replay(actions, start_rooms=start_rooms, start_pos=start_positions)
+        # new_positions = positions[:, 1]
+        new_rooms, new_positions = rooms[:, 1], positions[:, 1]
+
+        # For generalization, take any "second" position in the environment
+        new_positions_generalization = np.random.uniform(-env.scale, env.scale, size=(n_points, 2))
+        new_rooms_generalization = np.random.randint(env.n_rooms, size=(n_points,))
+
+        # start_positions = np.random.uniform(-env.scale, env.scale, size=(n_points, 2))
+        # start_rooms = np.random.randint(env.n_rooms, size=(n_points,))
+        #
+        # # This will test in training conditions
+        # actions = np.random.uniform(-step_size, step_size, size=(n_points, 1, 2))
+        # rooms, positions, actions = env.static_replay(actions, start_rooms=start_rooms, start_pos=start_positions)
+        # # new_positions = positions[:, 1]
+        # new_rooms, new_positions = rooms[:, 1], positions[:, 1]
+        #
+        # # For generalization, take any "second" position in the environment
+        # new_positions_generalization = np.random.uniform(-env.scale, env.scale, size=(n_points, 2))
+        # new_rooms_generalization = np.random.randint(env.n_rooms, size=(n_points,))
+        #
+        #
+        #
+        #
+        # all_representations = np.zeros((3*n_points, n_seeds, rep_size)) # Don't waste any of our computations
+        # all_global_positions = np.zeros((3*n_points, n_seeds, 2))
+        #
+        # displacements = np.zeros((n_points, n_seeds, 2))
+        # displacements_generalization = np.zeros((n_points, n_seeds, 2))
+        #
+        # errors = np.zeros((n_points, n_seeds))
+        # errors_generalization = np.zeros((n_points, n_seeds))
+        #
+        # all_scores = np.zeros((n_seeds, rep_size))
+
+        for seed in range(start_seed, start_seed+n_seeds):
+            with open(path+'full_params.json') as f:
+                all_params = json.load(f)
+                env = FixedRewardWorld(**all_params['env_params'], seed=777)
+                net = network_register[all_params['net_params']['net_name']](**all_params['net_params']['options'])
+
+            # print(semi_base_path+'seed{}/best_net.tch'.format(seed))
+            # net.load_state_dict(tch.load(path+'seed{}/best_net.tch'.format(seed)))
+            net.load_state_dict(tch.load(path+'seed{}/final_net.tch'.format(seed)))
+
+            start_images = env.get_images(start_rooms, start_positions)
+            start_reps = net.get_representation(start_images)
+            all_representations[prot_idx, :n_points, seed] = start_reps.detach().cpu().numpy()
+            all_global_positions[:n_points, seed] = env.room_centers[start_rooms] + start_positions
+
+            new_images = env.get_images(new_rooms, new_positions)
+            new_reps = net.get_representation(new_images)
+            all_representations[prot_idx, n_points:2*n_points, seed] = new_reps.detach().cpu().numpy()
+            all_global_positions[n_points:2*n_points, seed] = env.room_centers[new_rooms.astype(int)] + new_positions
+
+
+            new_images_generalization = env.get_images(new_rooms_generalization, new_positions_generalization)
+            new_reps_generalization = net.get_representation(new_images_generalization)
+            all_representations[prot_idx, 2*n_points:3*n_points, seed] = new_reps_generalization.detach().cpu().numpy()
+            all_global_positions[2*n_points:3*n_points, seed] = env.room_centers[new_rooms_generalization] + new_positions_generalization
+
+            for neuron in range(n_reps):
+                neuron_visual_representation = all_representations[prot_idx, :, seed, neuron].flatten()
+                norm = matplotlib.colors.Normalize(vmin=neuron_visual_representation.min(), vmax=neuron_visual_representation.max())
+
+                fig, ax = plt.subplots(1, 1, figsize=(6,6))
+                ax = env.render_template(ax_to_use=ax)
+                neuron_colors = seismic(norm(neuron_visual_representation)).reshape((-1, 4))
+                # ax.scatter(all_global_positions[:,seed,0], all_global_positions[:,seed,1], c=neuron_colors, s=64000/(n_points**2))
+                ax.scatter(all_global_positions[:,seed,0], all_global_positions[:,seed,1], c=neuron_colors, s=64000/(n_points))
+                fig.savefig(reps_figs_path+'seed_{}_neuron_{}.png'.format(seed, neuron)) # need to save as png, otherwise it makes an absurdly large pdf
+                plt.close('all')
+
+                X = np.reshape(all_global_positions[:, seed], (-1, 2))
+                y = np.reshape(all_representations[prot_idx, :, seed], (-1, rep_size))
+                model = LinearRegression()
+                logging.critical('starting fit of linear regression')
+                model.fit(X, y)
+                preds = model.predict(X)
+                all_scores[prot_idx, seed] = r2_score(y, preds, multioutput='raw_values')
+
+
+            displacements[prot_idx, :, seed] = net.backward_model(start_reps, new_reps).detach().cpu().numpy()
+            displacements_generalization[prot_idx, :, seed] = net.backward_model(start_reps, new_reps_generalization).detach().cpu().numpy()
+
+            errors[prot_idx, :, seed] = np.sqrt(((displacements[prot_idx, :, seed]-actions[:,0])**2).sum(axis=-1))
+            errors_generalization[prot_idx, :, seed] = np.sqrt(((displacements[prot_idx, :, seed]-(all_global_positions[2*n_points:3*n_points, seed]-all_global_positions[:n_points, seed]))**2).sum(axis=-1))
+
+            fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+            axes[0].hist(errors[prot_idx, :, seed].flatten(), bins=100)
+            axes[0].set_xlabel('Error (training conditions)')
+            axes[1].hist(errors_generalization[prot_idx, :, seed].flatten(), bins=100)
+            axes[1].set_xlabel('Error (generalization conditions)')
+            plt.savefig(errors_figs_path+'seed_{}.pdf'.format(seed))
+
+        print('error figs path: ', errors_figs_path)
+        fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+        axes[0].hist(errors[prot_idx].flatten(), bins=100)
+        axes[0].set_xlabel('Error (training conditions)')
+        axes[1].hist(errors_generalization[prot_idx].flatten(), bins=100)
+        axes[1].set_xlabel('Error (generalization conditions)')
+        plt.savefig(errors_figs_path+'general.pdf')
+
+
+        plt.figure()
+        plt.hist(all_scores[prot_idx].flatten(), bins=100, range=(0,1))
+        plt.savefig(errors_figs_path+'correlations.png')
+
+    # Comparison plots and table
+    # print(path'/table.tex')
+    with open(semi_base_path+'/table.tex', 'w+') as f:
+        f.write(' & Error (training) & ')
+        f.write('Error (generalization) & ')
+        f.write('$R^2$ (visual) ')
+        f.write('\\\\\n')
+
+        f.write('Without direct')
+        f.write(' & {:.2} $\pm$ {:.2}'.format(errors[0].mean(), errors[0].std()))
+        f.write(' & {:.2} $\pm$ {:.2}'.format(errors_generalization[0].mean(), errors_generalization[0].std()))
+        f.write(' & {:.2} $\pm$ {:.2}'.format(all_scores[0].mean(), all_scores[0].std()))
+        f.write('\\\\\n')
+
+        f.write('With direct')
+        f.write(' & {:.2} $\pm$ {:.2}'.format(errors[1].mean(), errors[1].std()))
+        f.write(' & {:.2} $\pm$ {:.2}'.format(errors_generalization[1].mean(), errors_generalization[1].std()))
+        f.write(' & {:.2} $\pm$ {:.2}'.format(all_scores[1].mean(), all_scores[1].std()))
+        f.write('\\\\\n')
+
 
 if __name__ == '__main__':
-    # offline_study_errors(map='SnakePath', layout='Default', exp_group='end_to_end/', protocol='default', epoch_len=100, step_size=.5, batch_size=128, n_trajs=512, start_seed=0, n_seeds=2, im_availability=.1, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-    # offline_study_errors(map='SnakePath', layout='Default', exp_group='end_to_end/', protocol='no_fb_losses', epoch_len=100, step_size=.5, batch_size=128, n_trajs=512, start_seed=0, n_seeds=2, im_availability=.1, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-    # offline_study_errors(map='SnakePath', layout='Default', exp_group='end_to_end/reimplementation_retrained', protocol='GRU_epoch_len_15', epoch_len=100, step_size=.5, batch_size=128, n_trajs=512, start_seed=0, n_seeds=2, im_availability=.1, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
+    ########################################################
+    ########################################################
+    ################# Representation study #################
+    ########################################################
+    ########################################################
+
+    # exp_group = 'with_out_direct_model'
+    # protocols = [
+    #             'with_forward',
+    #             'without_forward',
+    #             ]
+    #
+    #
+    # make_with_out_forward_figure(map='SnakePath', layout='Default', exp_group=exp_group, rep_size=512, protocols=protocols, start_seed=0, n_seeds=8)
 
 
     ########################################################
@@ -1268,54 +1592,49 @@ if __name__ == '__main__':
     ########################################################
     ########################################################
 
-    # reinference_errors = [0., .02, .04, .08]
-    # image_availabilities = [.2, .5, 1., 0., ]
-    #
-    # test_avail = .2
-    #
-    # for reinference_error in reinference_errors:
-    #     for image_availability in image_availabilities:
-    #         offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='offshelf_LSTM/pretrained/error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-    #         offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='minimal_model/all_losses/error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-    #         offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='minimal_model/no_fb_losses/error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-    #         offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='offshelf_LSTM/pretrained_no_start_rep/error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-    #         offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='offshelf_LSTM/use_start_rep_no_pretrain/error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-    #
-    # for protocol in ['offshelf_LSTM/pretrained', 'minimal_model/all_losses', 'minimal_model/no_fb_losses', 'offshelf_LSTM/pretrained_no_start_rep', 'offshelf_LSTM/use_start_rep_no_pretrain']:
-    #     # make_long_experiment_error_figures(exp_group='long_experiment', protocol=protocol, collapsed=True)
-    #    make_long_experiment_error_figures(exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2)
-    #
-    # do_latex_table(exp_group='long_experiment', im_availability=.2)
-    #
-    #
-
-
-
     reinference_errors = [0.]
     image_availabilities = [.2]
     test_avail = .2
 
-    protocols = [
-            'offshelf_LSTM/pretrained/',              # For LSTM comparison
-            'offshelf_LSTM/pretrained_no_start_rep/',
-            'offshelf_LSTM/use_start_rep_no_pretrain/',
-            'hybrid_LSTM/scratch_high_fb/',
+    # protocols = [
+    #         'offshelf_LSTM/pretrained/',              # For LSTM comparison
+    #         'offshelf_LSTM/pretrained_no_start_rep/',
+    #         'offshelf_LSTM/use_start_rep_no_pretrain/',
+    #         'hybrid_LSTM/scratch_high_fb/',
+    #
+    #         'minimal_model/all_losses/', # For main results
+    #         'minimal_model/no_fb_losses/',
+    #         'offshelf_LSTM/vanilla/',
+    #         'hybrid_LSTM/pretrained/',
+    #             ]
 
-            'minimal_model/all_losses/', # For main results
-            'minimal_model/no_fb_losses/',
-            'offshelf_LSTM/vanilla/',
-            'hybrid_LSTM/pretrained/',
+
+    protocols = [
+    #             # # Main table
+    #             'minimal_model/all_losses/',
+    #             'minimal_model/no_fb_losses/',
+    #             'offshelf_LSTM/vanilla/',
+    #             'hybrid_LSTM/pretrained/',
+    #
+    #             # # Additional table
+                'offshelf_LSTM/pretrained_no_start_rep/',
+                'offshelf_LSTM/use_start_rep_no_pretrain/',
+                'offshelf_LSTM/pretrained/',
+                'hybrid_LSTM/scratch_high_fb/',
                 ]
 
-    # for protocol in protocols:
-    #     for reinference_error in reinference_errors:
-    #         for image_availability in image_availabilities:
-    #             offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
 
 
-    # for protocol in protocols:
-    #    make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
-    #    # make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=8)
+    for protocol in protocols:
+        for reinference_error in reinference_errors:
+            for image_availability in image_availabilities:
+                # offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
+                offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=8, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
+
+
+    for protocol in protocols:
+       # make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
+       make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=8)
 
 
     # protocols = [
@@ -1326,17 +1645,19 @@ if __name__ == '__main__':
     #             ]
     # table_name = 'minimal_model'
     #
-    # do_latex_table(map='SnakePath', reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
-    #
-    # protocols = [
-    #             # 'hybrid_LSTM/pretrained/', # Add "end-to-end"
-    #             'offshelf_LSTM/pretrained_frozen/',
-    #             'offshelf_LSTM/pretrained_no_start_rep/',
-    #             'offshelf_LSTM/use_start_rep_no_pretrain/',
-    #             ]
-    # table_name = 'lstm_details'
-    #
-    # do_latex_table(map='SnakePath', reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
+    # do_latex_table(map='SnakePath', n_seeds=8, reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
+    # do_coordinate_systems_table(map='SnakePath', n_seeds=8, reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
+
+    protocols = [
+                'offshelf_LSTM/pretrained_no_start_rep/',
+                'offshelf_LSTM/use_start_rep_no_pretrain/',
+                'offshelf_LSTM/pretrained/',
+                'hybrid_LSTM/scratch_high_fb/', # Add "end-to-end"
+                ]
+    table_name = 'lstm_details'
+
+    do_latex_table(map='SnakePath', n_seeds=8, reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
+    do_coordinate_systems_table(map='SnakePath', n_seeds=8, reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
 
 
     ########################################################
@@ -1347,48 +1668,50 @@ if __name__ == '__main__':
 
 
 
-    reinference_errors = [0.]
-    image_availabilities = [.2]
-    test_avail = .2
+    # reinference_errors = [0.]
+    # image_availabilities = [.2]
+    # test_avail = .2
     #
-    # protocols = ['minimal_model/all_losses/',
+    #
+    # protocols = [
+    #             'minimal_model/all_losses/',
     #             'minimal_model/no_fb_losses/',
-    #             'offshelf_LSTM/pretrained/',
-    #             'offshelf_LSTM/use_start_rep_no_pretrain/',
-    #             'offshelf_LSTM/pretrained_no_start_rep/',
-    #             'offshelf_LSTM/pretrained_frozen/']
+    #             'offshelf_LSTM/vanilla/',
+    #             'hybrid_LSTM/pretrained_high_fb/',
+    # ]
+    # #
+    # for protocol in protocols:
+    #     for reinference_error in reinference_errors:
+    #         for image_availability in image_availabilities:
+    #             # offline_study_errors(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
+    #             offline_study_errors(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=8, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
     #
+    # for protocol in protocols:
+    #    # make_long_experiment_error_figures(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
+    #    make_long_experiment_error_figures(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=8)
+    #
+    #
+    # protocols = [
+    #             'minimal_model/all_losses/',
+    #             'minimal_model/no_fb_losses/',
+    #             'offshelf_LSTM/vanilla/',
+    #             'hybrid_LSTM/pretrained_high_fb/',
+    #             ]
+    # table_name = 'minimal_model'
+    #
+    # do_latex_table(map='DoubleDonut', n_seeds=8, reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
+    # do_coordinate_systems_table(map='DoubleDonut', n_seeds=8, reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
 
-    protocols = [ 'hybrid_LSTM/pretrained_high_fb/',]
-
-    for protocol in protocols:
-        for reinference_error in reinference_errors:
-            for image_availability in image_availabilities:
-                offline_study_errors(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-
-    for protocol in protocols:
-       make_long_experiment_error_figures(map='DoubleDonut', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
 
 
-    protocols = [
-                'minimal_model/all_losses/',
-                'minimal_model/no_fb_losses/',
-                # 'offshelf_LSTM/pretrained/',
-                # 'hybrid_LSTM/pretrained/',
-                'hybrid_LSTM/pretrained_high_fb/',
-                'offshelf_LSTM/use_start_rep_no_pretrain/' # Replace with "vanilla"
-                ]
-    table_name = 'minimal_model'
-
-    do_latex_table(map='DoubleDonut', reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
-
-    protocols = [
-                'hybrid_LSTM/pretrained/',
-                'offshelf_LSTM/pretrained/',
-                'offshelf_LSTM/pretrained_no_start_rep/',
-                'offshelf_LSTM/use_start_rep_no_pretrain/',
-                # Add "end-to-end"
-                ]
-    table_name = 'lstm_details'
-
-    do_latex_table(map='DoubleDonut', reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)
+    # protocols = [
+    #             'hybrid_LSTM/scratch_high_fb/',
+    #             'offshelf_LSTM/use_start_rep_no_pretrain/',
+    #             'offshelf_LSTM/pretrained/',
+    #             'offshelf_LSTM/pretrained_no_start_rep/',
+    #
+    #             # Add "end-to-end"
+    #             ]
+    # table_name = 'lstm_details'
+    #
+    # do_latex_table(map='DoubleDonut', reinference_errors=[0.], image_availabilities=[.2], layout='Default', exp_group='long_experiment', im_availability=.2, protocols=protocols, table_name=table_name)

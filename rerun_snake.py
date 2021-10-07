@@ -89,18 +89,27 @@ load_path = PATH + 'minimal_model/all_losses/'
 # all_use_start_rep = [False, None]
 # all_load_from = [None, load_path,]
 
+# Running on morricone, started wed 22 september, 10:20
+# all_conditions_names = ['minimal_model/all_losses/', 'hybrid_LSTM/pretrained_high_fb/', 'minimal_model/no_fb_losses/']
+# all_net_names = ['BigResetNetwork', 'BigHybridPathIntegrator', 'BigResetNetwork']
+# all_use_start_rep = [False, None, False]
+# all_load_from = [None, load_path, None]
 
-all_conditions_names = ['minimal_model/all_losses/', 'hybrid_LSTM/pretrained_high_fb/', 'minimal_model/no_fb_losses/']
-all_net_names = ['BigResetNetwork', 'BigHybridPathIntegrator', 'BigResetNetwork']
-all_use_start_rep = [False, None, False]
-all_load_from = [None, load_path, None]
+
+# Started friday 3pm on morricone
+all_conditions_names = ['hybrid_LSTM/pretrained/','hybrid_LSTM/scratch_high_fb/', 'offshelf_LSTM/pretrained/', 'offshelf_LSTM/use_start_rep_no_pretrain/', 'offshelf_LSTM/pretrained_no_start_rep/']
+all_net_names = ['BigHybridPathIntegrator','BigHybridPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator']
+all_use_start_rep = [None, None, True, True, False]
+all_load_from = [load_path, None, load_path, None, load_path]
+
+
+
+
 
 
 all_params = zip(all_conditions_names, all_net_names, all_use_start_rep, all_load_from)
 
 
-
-# TODO: run hybrid_LSTM
 
 
 class do_all:

@@ -4,3 +4,4 @@ dep*
 *.out
 *logs
 Multi*
+*run*

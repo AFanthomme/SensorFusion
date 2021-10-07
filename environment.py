@@ -1656,7 +1656,7 @@ class World:
             raise RuntimeError('Invalid xy initialization for current room')
         self.agent_position = np.array([*xy])
 
-    def render_template(self, ax_to_use=None):
+    def render_template(self, ax_to_use=None, add_goal=False):
         if ax_to_use is None:
             fig, ax = self.render_background(ax_to_use=None)
         else:
@@ -1668,9 +1668,10 @@ class World:
                 rect = patches.Rectangle(xy+xy0-.05*self.scale, .2*self.scale, .2*self.scale, linewidth=1, edgecolor='k', facecolor=col)
                 ax.add_patch(rect)
 
-        if self.reward_room is not None:
-            exit_rect = patches.Rectangle(self.room_centers[self.reward_room, :2]+self.reward_position-self.reward_area_width, 2*self.reward_area_width, 2*self.reward_area_width, facecolor='gray', hatch='x', alpha=.5)
-            ax.add_patch(exit_rect)
+        if add_goal:
+            if self.reward_room is not None:
+                exit_rect = patches.Rectangle(self.room_centers[self.reward_room, :2]+self.reward_position-self.reward_area_width, 2*self.reward_area_width, 2*self.reward_area_width, facecolor='gray', hatch='x', alpha=.5)
+                ax.add_patch(exit_rect)
 
         if ax_to_use is None:
             return fig, ax
@@ -2020,7 +2021,14 @@ class FixedRewardWorld(gym.Env, World):
 
         # Decouple those now, could be useful later
         end_traj = self.check_reward_overlap(self.agent_room, self.agent_position)
-        reward = self.check_reward_overlap(self.agent_room, self.agent_position).astype(np.float32)
+
+        try:
+            reward = self.check_reward_overlap(self.agent_room, self.agent_position).astype(np.float32)
+        except AttributeError:
+            if self.check_reward_overlap(self.agent_room, self.agent_position):
+                reward = 1.
+            else:
+                reward = 0.
 
         if not np.all(rectified_action == action):
             reward = -0.05

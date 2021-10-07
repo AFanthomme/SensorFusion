@@ -16,13 +16,12 @@ from itertools import cycle
 import json
 from environment import *
 from networks import *
-from reimplementations import ReimplementationPathIntegrator, BigReimplementationPathIntegrator
 from scipy.stats import linregress
 from tqdm import tqdm
 from networks import network_register
 
-network_register['ReimplementationPathIntegrator'] = ReimplementationPathIntegrator
-network_register['BigReimplementationPathIntegrator'] = BigReimplementationPathIntegrator
+# network_register['ReimplementationPathIntegrator'] = ReimplementationPathIntegrator
+# network_register['BigReimplementationPathIntegrator'] = BigReimplementationPathIntegrator
 
 max = lambda x, y: x if x > y else y
 min = lambda x, y: x if x < y else y
@@ -67,12 +66,8 @@ def offline_study_internal_gates(map='SnakePath', layout='Default', exp_group='e
 
     with open(path+'full_params.json') as f:
         all_params = json.load(f)
-        env = World(**all_params['env_params'], seed=777)
-
-        if reimplementation_type == 'Small':
-            net = ReimplementationPathIntegrator(**all_params['net_params']['options'])
-        elif reimplementation_type == 'Big':
-            net = BigReimplementationPathIntegrator(**all_params['net_params']['options'])
+        env = FixedRewardWorld(**all_params['env_params'], seed=777)
+        net = BigReimplementationPathIntegrator(**all_params['net_params']['options'])
 
     os.makedirs(path+'gatings_offline_study/', exist_ok=True)
 
@@ -107,15 +102,14 @@ def offline_study_internal_gates(map='SnakePath', layout='Default', exp_group='e
     with tch.set_grad_enabled(False):
         for seed in range(n_seeds):
             print('Starting seed {}'.format(start_seed+seed))
-            env = World(**all_params['env_params'], seed=start_seed+seed)
+            # env = World(**all_params['env_params'], seed=start_seed+seed)
+            env = FixedRewardWorld(**all_params['env_params'], seed=start_seed+seed)
             params = all_params['net_params']['options']
             params['use_reimplementation'] = True
 
             print(rec_type, path+'seed{}/best_net.tch'.format(start_seed+seed))
-            if reimplementation_type == 'Small':
-                net = ReimplementationPathIntegrator(**params)
-            elif reimplementation_type == 'Big':
-                net = BigReimplementationPathIntegrator(**params)
+
+            net = BigReimplementationPathIntegrator(**params)
 
             net.load(path+'seed{}/best_net.tch'.format(start_seed+seed))
 
@@ -215,138 +209,7 @@ def offline_study_internal_gates(map='SnakePath', layout='Default', exp_group='e
         plot_mean_std(ax, all_errors)
         plt.savefig(path+'gatings_offline_study/__error_sanity_check.pdf')
 
-# m
-# # # Can be used to make sure reimplementations work correctly
-# # def offline_make_deliberate_trajectory_figures(map='SnakePath', layout='Default', protocol='default', exp_group='end_to_end', batch_size=4, start_seed=0, n_seeds=4, im_availability=.1, corruption_rate=.5, noise=0., resetting_type='fixed', figure_layout='one_row'):
-# #     plt.rc('text', usetex=True)
-# #     plt.rc('font', family='serif')
-# #
-# #     path = 'out/{}_{}/{}/{}/'.format(map, layout, exp_group, protocol)
-# #     print(path)
-# #
-# #     with open(path+'full_params.json') as f:
-# #         all_params = json.load(f)
-# #         env = World(**all_params['env_params'], seed=777)
-# #         net = network_register[all_params['net_params']['net_name']](**all_params['net_params']['options'])
-# #
-# #         deliberate_actions = np.array([meaningful_trajectories[env.map_name]]*batch_size) * env.scale
-# #         epoch_len = deliberate_actions.shape[1]
-# #         rooms, positions, _ = env.static_replay(deliberate_actions, start_rooms=np.zeros(batch_size, dtype=int), start_pos=np.zeros((batch_size, 2)))
-# #
-# #         perturbed_positions = np.clip(positions+.2*env.scale*np.random.uniform(-1, 1, size=positions.shape), -env.scale, env.scale)
-# #         global_positions = perturbed_positions + env.room_centers[rooms.astype(int)][:,:,:2]
-# #         actions = global_positions[:, 1:] - global_positions[:, :-1]
-# #
-# #         actions[0] = deliberate_actions[0]
-# #         epoch_len = actions.shape[1]
-# #         start_rooms = np.zeros(batch_size)
-# #         start_pos = np.zeros((batch_size, 2))
-# #
-# #         rooms, positions, actions = env.static_replay(actions, start_rooms=start_rooms, start_pos=start_pos)
-# #         cumulated_actions = np.cumsum(actions, axis=1)
-# #         images = env.get_images(rooms, positions) #retinal states, (bs, T+1=2, ret_res**2, 3)
-# #
-# #         if resetting_type == 'fixed':
-# #             reset_every = int(1/im_availability)
-# #             ims_to_perturb = ((tch.tensor(range(epoch_len+1))).fmod(reset_every)!=0).unsqueeze(0).repeat((batch_size, 1)).float()
-# #         elif resetting_type == 'random':
-# #             ims_to_perturb =  tch.bernoulli((1.-im_availability) * tch.ones(batch_size, epoch_len+1))
-# #
-# #         ims_to_perturb[:, 0] = tch.zeros_like(ims_to_perturb[:, 0])
-# #
-# #         # Now, for images to perturb, choose between "corruption" and "drop"
-# #         corrupt = tch.where(tch.bernoulli(corruption_rate * tch.ones(batch_size, epoch_len+1)).byte(), ims_to_perturb, tch.zeros(batch_size, epoch_len+1)).bool()
-# #         drop = tch.logical_and(ims_to_perturb, tch.logical_not(corrupt))
-# #         mask = (1.-drop.float()).unsqueeze(-1).repeat(1, 1, net.representation_size).float().to(net.device)
-# #
-# #         time_based_norm = matplotlib.colors.Normalize(vmin=0, vmax=actions.shape[1]+1)
-# #         cmap = plt.get_cmap('jet')
-# #         colors = cmap(time_based_norm(range(epoch_len+1)))
-# #
-# #
-# #         marker = '*'
-# #         marker_true = '+'
-# #
-# #     with tch.set_grad_enabled(False):
-# #         for seed in range(n_seeds):
-# #             print('Starting seed {}'.format(start_seed+seed))
-# #             env = World(**all_params['env_params'], seed=start_seed+seed)
-# #             params = all_params['net_params']['options']
-# #             # params['use_reimplementation'] = False
-# #             params['use_reimplementation'] = True
-# #             net = network_register[all_params['net_params']['net_name']](**params)
-# #             net.load_state_dict(tch.load(path+'seed{}/best_net.tch'.format(start_seed+seed)))
-# #             # net.load(path+'seed{}/best_net.tch'.format(start_seed+seed))
-# #
-# #             outputs = np.zeros((batch_size, epoch_len, 2))
-# #             gatings = np.zeros((batch_size, epoch_len))
-# #             representations = net.get_representation(images.view(batch_size * (epoch_len+1), -1, 3)).view(batch_size, (epoch_len+1), -1)
-# #             actions_encodings =  net.get_z_encoding(tch.from_numpy(actions + noise*np.random.randn(*actions.shape)).view(batch_size * (epoch_len), 2).float().to(net.device)).view(batch_size, (epoch_len), -1)
-# #             representations = mask * representations
-# #             tmp = representations[corrupt]
-# #             tmp = tmp[:, tch.randperm(tmp.shape[1])]
-# #             representations[corrupt] = tmp
-# #
-# #             outputs, gatings, _ = net.do_path_integration(representations, actions_encodings)
-# #             outputs = outputs.detach().cpu().numpy()
-# #             gatings = gatings.detach().cpu().numpy()
-# #
-# #             for b in range(batch_size):
-# #                 true_global_pos  = np.zeros((epoch_len+1, 2))
-# #                 true_global_pos[0] = env.room_centers[int(rooms[b,0]), :2] + positions[b,0] # NOTE: :2 is there to prepare arival of "z" coordinate
-# #                 true_global_pos[1:] = cumulated_actions[b] + env.room_centers[int(rooms[b,0]), :2] + positions[b,0] # NOTE: :2 is there to prepare arival of "z" coordinate
-# #
-# #                 global_pos  = np.zeros((epoch_len+1, 2))
-# #                 global_pos[0] = env.room_centers[int(rooms[b,0]), :2] + positions[b,0] # NOTE: :2 is there to prepare arival of "z" coordinate
-# #                 global_pos[1:] = outputs[b] + env.room_centers[int(rooms[b,0]), :2] + positions[b,0] # NOTE: :2 is there to prepare arival of "z" coordinate
-# #                 errors = np.sqrt(((outputs-cumulated_actions)**2).sum(axis=-1))
-# #
-# #
-# #                 if figure_layout == 'one_row':
-# #                     fig = plt.figure(tight_layout=True, figsize=(10, 5))
-# #                 elif figure_layout == 'two_rows':
-# #                     fig = plt.figure(tight_layout=True, figsize=(10, 10))
-# #
-# #                 gs = matplotlib.gridspec.GridSpec(2, 2)
-# #
-# #                 if figure_layout == 'one_row':
-# #                     ax = fig.add_subplot(gs[:, 0])
-# #                 elif figure_layout == 'two_rows':
-# #                     ax = fig.add_subplot(gs[0, :])
-# #                 ax = env.render_template(ax_to_use=ax)
-# #                 for t in range(epoch_len - 1):
-# #                     ax.scatter(global_pos[t,0], global_pos[t,1], c=colors[t], marker=marker, alpha=.5, zorder=-5)
-# #                     ax.scatter(true_global_pos[t,0], true_global_pos[t,1], c=colors[t], marker=marker_true, alpha=.5, zorder=-5)
-# #                     if ims_to_perturb[b, t] == 0:
-# #                         ax.scatter(true_global_pos[t,0], true_global_pos[t,1], edgecolors='k', s=80, facecolors='none', alpha=.5, zorder=.5)
-# #
-# #                 divider = make_axes_locatable(ax)
-# #                 ax_cb = divider.new_horizontal(size="5%", pad=0.05)
-# #                 cb1 = matplotlib.colorbar.ColorbarBase(ax_cb, cmap=cmap, norm=time_based_norm, orientation='vertical')
-# #                 fig.add_axes(ax_cb)
-# #                 ax.set_title('Recovered positions')
-# #                 if figure_layout == 'one_row':
-# #                     ax = fig.add_subplot(gs[0, 1])
-# #                 elif figure_layout == 'two_rows':
-# #                     ax = fig.add_subplot(gs[1, 0])
-# #                 ax.plot(gatings[b, :epoch_len, 0])
-# #                 ax.axhline(y=0, c='k')
-# #                 for t in range(epoch_len):
-# #                     if ims_to_perturb[b, t+1] == 0:
-# #                         ax.axvline(x=t, ls='--', c='k')
-# #                 ax.set_title('Value of the gating')
-# #
-# #                 ax = fig.add_subplot(gs[1, 1])
-# #                 ax.semilogy(errors[b, :epoch_len])
-# #                 ax.axhline(y=0, c='k')
-# #                 for t in range(epoch_len):
-# #                     if ims_to_perturb[b, t+1] == 0:
-# #                         ax.axvline(x=t, ls='--', c='k')
-# #                 ax.set_title('Value of the error')
-# #
-# #                 os.makedirs(path+'seed{}/offline_deliberate_trajectory_figures'.format(start_seed+seed), exist_ok=True)
-# #                 fig.savefig(path+'seed{}/offline_deliberate_trajectory_figures/im_availability_{}_noise_{}_resetting_{}_traj{}.pdf'.format(start_seed+seed, im_availability, noise, resetting_type, b))
-# #                 plt.close(fig)
+
 
 if __name__ == '__main__':
-    pass
+    offline_study_internal_gates(map='SnakePath', layout='Default', exp_group='long_experiment', protocol='offshelf_LSTM/pretrained/error_0.0_avail_0.2', batch_size=64, n_trajs=512, epoch_len=50, step_size=.5, start_seed=0, n_seeds=8, im_availability=.1, corruption_rate=.5)
