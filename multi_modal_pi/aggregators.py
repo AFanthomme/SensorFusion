@@ -11,18 +11,22 @@ import os
 import logging
 import gc
 from matplotlib.patches import Rectangle, Circle
-from policy import RandomPolicy
 from itertools import cycle
 import json
-from environment import *
-from networks import *
-# from reimplementations import ReimplementationPathIntegrator, BigReimplementationPathIntegrator
 from scipy.stats import linregress
 from tqdm import tqdm
-from networks import network_register
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 import pandas as pd
+
+
+from src.environment import *
+from src.networks import *
+from src.policy import RandomPolicy
+
+
+
+
 
 max = lambda x, y: x if x > y else y
 min = lambda x, y: x if x < y else y
@@ -1625,16 +1629,16 @@ if __name__ == '__main__':
 
 
 
-    for protocol in protocols:
-        for reinference_error in reinference_errors:
-            for image_availability in image_availabilities:
-                # offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-                offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=8, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
-
-
-    for protocol in protocols:
-       # make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
-       make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=8)
+    # for protocol in protocols:
+    #     for reinference_error in reinference_errors:
+    #         for image_availability in image_availabilities:
+    #             # offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=4, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
+    #             offline_study_errors(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol+'error_{}_avail_{}'.format(reinference_error, image_availability), epoch_len=100, step_size=.5, batch_size=16, n_trajs=512, start_seed=0, n_seeds=8, im_availability=test_avail, corruption_rate=.5, noise=0.05, resetting_type='fixed', collapsed=True)
+    #
+    #
+    # for protocol in protocols:
+    #    # make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=4)
+    #    make_long_experiment_error_figures(map='SnakePath', layout='Default', exp_group='long_experiment', protocol=protocol, collapsed=True, im_availability=.2, reinference_errors=reinference_errors, image_availabilities=image_availabilities, start_seed=0, n_seeds=8)
 
 
     # protocols = [

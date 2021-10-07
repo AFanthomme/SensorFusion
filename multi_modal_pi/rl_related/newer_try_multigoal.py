@@ -15,8 +15,10 @@ from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback,
 from stable_baselines3.td3.policies import TD3Policy, Actor
 from stable_baselines3.common.monitor import Monitor
 import stable_baselines3
-from helpers_RL import *
 import random
+
+from  SensorFusion.rl_related.helpers_RL import *
+
 
 register(
   id='MultiGoalSnakePath-v0',
@@ -31,11 +33,9 @@ register(
 methods_dict = {'TD3': TD3}
 goal_selection_strategy = 'future'
 
-scale_actions = False
-
-for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [True], ['rec_images_available'], [1.]):
+# for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [True], ['rec_images_available'], [1.]):
 # for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [False], ['non_rec_images_available'], [1.]):
-# for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [True], ['rec_images_unreliable'], [.5]):
+for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [True], ['rec_images_unreliable'], [.5]):
     SEED=0
     tch.manual_seed(SEED)
     np.random.seed(SEED)
@@ -49,11 +49,11 @@ for env_name, load_from, use_recurrence, details_name, im_availability in zip(["
     os.makedirs(TENSORBOARD_LOG_FOLDER, exist_ok=True)
 
     env = gym.make(env_name, seed=SEED, epoch_len=30, im_availability=im_availability, corrupt_frac=.5, use_recurrence=use_recurrence,
-                    load_preprocessor_from=load_from, scale_actions=scale_actions)
+                    load_preprocessor_from=load_from)
     env = Monitor(env, TENSORBOARD_LOG_FOLDER)
 
     eval_env = gym.make(env_name, seed=SEED, epoch_len=30, im_availability=im_availability, corrupt_frac=.5, use_recurrence=use_recurrence,
-                    load_preprocessor_from=load_from, scale_actions=scale_actions)
+                    load_preprocessor_from=load_from)
     eval_env = Monitor(eval_env, TENSORBOARD_LOG_FOLDER)
 
 
@@ -69,10 +69,10 @@ for env_name, load_from, use_recurrence, details_name, im_availability in zip(["
         replay_buffer_class=HerReplayBuffer,
         buffer_size=10000*20,
 
-        # learning_rate=3e-4,
         learning_rate=3e-4,
+        # learning_rate=1e-3,
         gamma=0.95,
-        batch_size=1024,
+        batch_size=4096,
 
         policy_kwargs={
             'net_arch': [512, 256, 128, 32],

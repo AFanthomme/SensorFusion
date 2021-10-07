@@ -1,4 +1,4 @@
-from trainer import *
+from SensorFusion.src.trainer import *
 from copy import deepcopy
 import gc
 import logging
@@ -39,70 +39,18 @@ image_availabilities = [.2]
 load_path = PATH + 'minimal_model/all_losses/'
 
 
-# all_conditions_names = ['minimal_model/all_losses/', 'minimal_model/no_fb_losses/', 'offshelf_LSTM/pretrained/', 'offshelf_LSTM/use_start_rep_no_pretrain/', 'offshelf_LSTM/pretrained_no_start_rep/']
-# all_net_names = ['BigResetNetwork', 'BigResetNetwork', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator']
-# all_use_start_rep = [False, False, True, True, False]
-# all_load_from = [None, None, load_path, None, load_path]
+# Main table
+all_conditions_names = ['minimal_model/all_losses/', 'minimal_model/no_fb_losses/', 'offshelf_LSTM/vanilla/', 'hybrid_LSTM/pretrained_high_fb/',]
+all_net_names = ['BigResetNetwork', 'BigResetNetwork, 'BigReimplementationPathIntegrator', 'BigHybridPathIntegrator'']
+all_use_start_rep = [False, False, False, None]
+all_load_from = [None, None, None load_path]
 
 
-# all_conditions_names = ['minimal_model/all_losses/', 'minimal_model/no_fb_losses/', 'offshelf_LSTM/pretrained_frozen/']
-# all_net_names = ['BigResetNetwork', 'BigResetNetwork', 'BigReimplementationPathIntegrator']
-# all_use_start_rep = [False, False, True]
-# all_load_from = [None, None, load_path]
-
-
-# all_conditions_names = ['hybrid_LSTM/pretrained/', 'hybrid_LSTM/scratch/']
-# all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [None, None]
-# all_load_from = [load_path, None,]
-
-
-# all_conditions_names = ['hybrid_LSTM/pretrained/', 'hybrid_LSTM/scratch/']
-# all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [None, None]
-# all_load_from = [load_path, None,]
-
-
-# all_conditions_names = ['hybrid_LSTM/pretrained_low_fb/', 'hybrid_LSTM/scratch_low_fb/']
-# all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [None, None]
-# all_load_from = [load_path, None,]
-
-
-# all_conditions_names = ['hybrid_LSTM/pretrained_high_fb/', 'hybrid_LSTM/scratch_high_fb/']
-# all_net_names = ['BigHybridPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [None, None]
-# all_load_from = [load_path, None,]
-
-
-
-# all_conditions_names = ['offshelf_LSTM/vanilla/', 'hybrid_LSTM/scratch/']
-# all_net_names = ['BigReimplementationPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [False, None]
-# all_load_from = [None, None,]
-
-# These are for seeds 4 to 8
-
-# For main plot
-# all_conditions_names = ['offshelf_LSTM/vanilla/']
-# all_net_names = ['BigReimplementationPathIntegrator', 'BigHybridPathIntegrator']
-# all_use_start_rep = [False, None]
-# all_load_from = [None, load_path,]
-
-# Running on morricone, started wed 22 september, 10:20
-# all_conditions_names = ['minimal_model/all_losses/', 'hybrid_LSTM/pretrained_high_fb/', 'minimal_model/no_fb_losses/']
-# all_net_names = ['BigResetNetwork', 'BigHybridPathIntegrator', 'BigResetNetwork']
-# all_use_start_rep = [False, None, False]
-# all_load_from = [None, load_path, None]
-
-
-# Started friday 3pm on morricone
-all_conditions_names = ['hybrid_LSTM/pretrained/','hybrid_LSTM/scratch_high_fb/', 'offshelf_LSTM/pretrained/', 'offshelf_LSTM/use_start_rep_no_pretrain/', 'offshelf_LSTM/pretrained_no_start_rep/']
-all_net_names = ['BigHybridPathIntegrator','BigHybridPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator']
-all_use_start_rep = [None, None, True, True, False]
-all_load_from = [load_path, None, load_path, None, load_path]
-
-
+# Secondary table
+# all_conditions_names = ['hybrid_LSTM/scratch_high_fb/', 'offshelf_LSTM/pretrained/', 'offshelf_LSTM/use_start_rep_no_pretrain/', 'offshelf_LSTM/pretrained_no_start_rep/']
+# all_net_names = ['BigHybridPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator']
+# all_use_start_rep = [None, True, True, False]
+# all_load_from = [None, load_path, None, load_path]
 
 
 
@@ -120,14 +68,6 @@ class do_all:
         logging.critical('Launching experiment with seed {}'.format(seed))
 
         for cond_name, net_name, use_start_rep, load_from in all_params:
-            # if (cond_name == 'minimal_model/all_losses/') or (cond_name == 'minimal_model/no_fb_losses/'):
-            #     continue
-
-            # if cond_name == 'minimal_model/all_losses/': # Because need to restart...
-            #     continue
-
-
-
             for image_availability in image_availabilities:
                 for reinference_error in reinference_errors:
                     params = deepcopy(default_params)
@@ -169,7 +109,6 @@ class do_all:
                         'minimal_model/all_losses/', 'hybrid_LSTM/pretrained/', 'hybrid_LSTM/scratch/',
                         'hybrid_LSTM/pretrained_high_fb/', 'hybrid_LSTM/scratch_high_fb/',
                         'hybrid_LSTM/pretrained_low_fb/', 'hybrid_LSTM/scratch_low_fb/', ]:
-
                         params['train_params']['tuple_loss_options']['batch_size'] = 512
                     else:
                         params['train_params']['tuple_loss_options']['batch_size'] = 4
@@ -230,9 +169,9 @@ if __name__ == '__main__':
     import multiprocessing
 
     n_threads = 4
-    n_seeds = 4
+    n_seeds = 8
     # start_seed = 0
-    start_seed = 4
+    start_seed = 8
 
     multiprocessing.set_start_method('spawn')
     install_mp_handler()

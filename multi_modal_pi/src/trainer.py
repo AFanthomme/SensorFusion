@@ -2,14 +2,6 @@
 In launcher, everything is markup; here, we transform that into objects that interact with each other
 '''
 
-'''
-In launcher, everything is markup; here, we transform that into objects that interact with each other
-'''
-from networks import network_register
-from environment import environment_register, FixedRewardWorld
-from tests import tests_register
-from numpy.random import RandomState
-from losses import *
 import logging
 import numpy as np
 from torch.optim import SGD, Adam
@@ -20,9 +12,15 @@ logging.getLogger('matplotlib').setLevel(logging.CRITICAL)
 from copy import deepcopy
 import torch as tch
 import os
-from policy import policy_register
-from schedules import *
-# Get the original trainer back in here
+from numpy.random import RandomState
+
+
+from src.networks import network_register
+from src.environment import environment_register, FixedRewardWorld
+from src.tests import tests_register
+from src.losses import *
+from src.policy import policy_register
+from src.schedules import *
 
 class EndToEndTrainer:
     def __init__(self, params, seed):

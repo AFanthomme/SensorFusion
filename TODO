@@ -1,4 +1,0 @@
-add to resetnetwork a "step" function that takes current internal state and inputs and updates it (RNNCell style)
-(useful to integrate with environment, so that we can use the internal state as observation)
-
--> needs to work on batch so we can be efficient...

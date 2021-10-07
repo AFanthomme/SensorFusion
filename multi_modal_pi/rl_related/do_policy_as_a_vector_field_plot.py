@@ -14,9 +14,9 @@ from stable_baselines3 import PPO, TD3, SAC, DDPG
 from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
 from stable_baselines3.td3.policies import TD3Policy, Actor
 from stable_baselines3.common.monitor import Monitor
-from helpers_RL import *
 from matplotlib.colors import hsv_to_rgb
 
+from SensorFusion.rl_related.helpers_RL import *
 
 register(
   id='MultiGoalSnakePath-v0',

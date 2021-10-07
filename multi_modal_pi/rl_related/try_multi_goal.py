@@ -3,7 +3,6 @@ import gym
 import os
 import numpy as np
 import logging
-# from stable_baselines3.common.torch_layers import FeedForwardPolicy, register_policy
 from stable_baselines3 import DDPG, DQN, SAC, TD3
 from stable_baselines3.her import HerReplayBuffer
 import torch as tch
@@ -15,8 +14,13 @@ from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback,
 from stable_baselines3.td3.policies import TD3Policy, Actor
 from stable_baselines3.common.monitor import Monitor
 import stable_baselines3
-from helpers_RL import *
 import random
+
+
+
+from SensorFusion.rl_related.helpers_RL import *
+
+
 
 register(
   id='MultiGoalSnakePath-v0',
@@ -32,9 +36,10 @@ methods_dict = {'TD3': TD3}
 goal_selection_strategy = 'future'
 
 scale_actions = False
-# for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [True], ['rec_images_available'], [1.]):
+
+for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [True], ['rec_images_available'], [1.]):
 # for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [False], ['non_rec_images_available'], [1.]):
-for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [True], ['rec_images_unreliable_other_far_west'], [.5]):
+# for env_name, load_from, use_recurrence, details_name, im_availability in zip(["MultiGoalSnakePath-v1"], ['out/SnakePath_Default/end_to_end/default/'], [True], ['rec_images_unreliable'], [.5]):
     SEED=0
     tch.manual_seed(SEED)
     np.random.seed(SEED)
@@ -44,7 +49,7 @@ for env_name, load_from, use_recurrence, details_name, im_availability in zip(["
 
     method = 'TD3'
     EVAL_EVERY=5000
-    TENSORBOARD_LOG_FOLDER = "./logs/other_far_west/tensorboard/"
+    TENSORBOARD_LOG_FOLDER = "./logs/{}_{}/{}/seed{}/tensorboard/".format(env_name, details_name, method, SEED)
     os.makedirs(TENSORBOARD_LOG_FOLDER, exist_ok=True)
 
     env = gym.make(env_name, seed=SEED, epoch_len=30, im_availability=im_availability, corrupt_frac=.5, use_recurrence=use_recurrence,
@@ -59,7 +64,7 @@ for env_name, load_from, use_recurrence, details_name, im_availability in zip(["
     fig_name_prefix = 'trajectory_figures_'
 
     # Save a checkpoint every 1000 steps
-    checkpoint_callback = CheckpointCallback(save_freq=EVAL_EVERY, save_path="./logs/other_far_west/saves/".format(env_name, details_name, method, SEED))
+    checkpoint_callback = CheckpointCallback(save_freq=EVAL_EVERY, save_path="./logs/{}/{}_{}/seed{}/saves/".format(env_name, details_name, method, SEED))
     policy_eval_callback = PolicyEvaluationCallback(eval_env, save_freq=EVAL_EVERY, fig_name_prefix=fig_name_prefix,)
 
     model = methods_dict[method](
@@ -68,19 +73,19 @@ for env_name, load_from, use_recurrence, details_name, im_availability in zip(["
         replay_buffer_class=HerReplayBuffer,
         buffer_size=10000*20,
 
+        # learning_rate=3e-4,
         learning_rate=3e-4,
-        # learning_rate=1e-3,
         gamma=0.95,
-        batch_size=4096,
+        batch_size=1024,
 
         policy_kwargs={
-            'net_arch': [128, 64],
+            'net_arch': [512, 256, 128, 32],
             # 'features_dim': 256,
             "features_extractor_class": CustomCombinedExtractor,
             },
         # Parameters for HER
         replay_buffer_kwargs=dict(
-            n_sampled_goal=2,
+            n_sampled_goal=4,
             goal_selection_strategy="future",
             online_sampling=True,
             max_episode_length=30,
@@ -99,7 +104,7 @@ for env_name, load_from, use_recurrence, details_name, im_availability in zip(["
             callback=CallbackList([checkpoint_callback, policy_eval_callback]),
             tb_log_name='default',
             )
-    model.save("/logs/other_far_west/tensorboard/best_net.tch")
+    model.save("{}/{}_{}/seed{}/saves/final_model".format(env_name, details_name, method, SEED))
 
     # os.makedirs('out/tests/multi_goal_baseline/{}'.format(env_name), exist_ok=True)
     # logging.critical('start evaluating')

@@ -1,15 +1,19 @@
 import gym
-
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common import make_vec_env
 from stable_baselines import A2C
-
 from gym.envs.registration import register
 import os
 import numpy as np
 import logging
-from helpers_RL import *
 import random
+
+
+
+
+from SensorFusion.rl_related.helpers_RL import *
+
+
 
 register(
   id='MultiGoalSnakePath-v0',

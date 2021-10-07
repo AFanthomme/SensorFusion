@@ -1,8 +1,0 @@
-launcher snakepath :
-- end-to-end
-- end-to-end no fb loss (similar paramsto above)
-- GRU / LSTM (no pretraining, similar params)
-
----> do the offline_error_study (show that no resetting for those that don't use fb losses)
-
-- GRU / LSTM (with pretrained net)

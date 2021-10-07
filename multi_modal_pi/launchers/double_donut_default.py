@@ -1,4 +1,4 @@
-from trainer import *
+from SensorFusion.src.trainer import *
 from copy import deepcopy
 import gc
 import logging
@@ -32,23 +32,24 @@ default_params = {
     'load_from': None
 }
 
-# reinference_errors = [0., .02, .04, .08]
+
 reinference_errors = [0.]
 image_availabilities = [.2]
 
 load_path = PATH + 'minimal_model/all_losses/'
 
+# Main table
+all_conditions_names = ['minimal_model/all_losses/', 'minimal_model/no_fb_losses/', 'offshelf_LSTM/vanilla/', 'hybrid_LSTM/pretrained_high_fb/',]
+all_net_names = ['BigResetNetwork', 'BigResetNetwork, 'BigReimplementationPathIntegrator', 'BigHybridPathIntegrator'']
+all_use_start_rep = [False, False, False, None]
+all_load_from = [None, None, None load_path]
 
-all_conditions_names = ['minimal_model/all_losses/', 'minimal_model/no_fb_losses/', 'offshelf_LSTM/pretrained/', 'offshelf_LSTM/use_start_rep_no_pretrain/', 'offshelf_LSTM/pretrained_no_start_rep/', 'offshelf_LSTM/pretrained_frozen/']
-all_net_names = ['BigResetNetwork', 'BigResetNetwork', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator']
-all_use_start_rep = [False, False, True, True, False, True]
-all_load_from = [None, None, load_path, None, load_path, load_path]
 
-
-# all_conditions_names = ['offshelf_LSTM/pretrained_frozen/']
-# all_net_names = ['BigReimplementationPathIntegrator']
-# all_use_start_rep = [True]
-# all_load_from = [load_path]
+# Secondary table
+# all_conditions_names = ['hybrid_LSTM/scratch_high_fb/', 'offshelf_LSTM/pretrained/', 'offshelf_LSTM/use_start_rep_no_pretrain/', 'offshelf_LSTM/pretrained_no_start_rep/']
+# all_net_names = ['BigHybridPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator', 'BigReimplementationPathIntegrator']
+# all_use_start_rep = [None, True, True, False]
+# all_load_from = [None, load_path, None, load_path]
 
 
 all_params = zip(all_conditions_names, all_net_names, all_use_start_rep, all_load_from)
@@ -65,12 +66,6 @@ class do_all:
         logging.critical('Launching experiment with seed {}'.format(seed))
 
         for cond_name, net_name, use_start_rep, load_from in all_params:
-            # if (cond_name == 'minimal_model/all_losses/') or (cond_name == 'minimal_model/no_fb_losses/'):
-            #     continue
-
-            # if cond_name == 'minimal_model/all_losses/': # Because need to restart...
-            #     continue
-
 
 
             for image_availability in image_availabilities:
@@ -100,10 +95,6 @@ class do_all:
                     params['train_params']['pi_loss_options'] = {}
                     params['train_params']['tuple_loss_options'] = {}
 
-                    # if net_name == 'BigReimplementationPathIntegrator':
-                    #     params['train_params']['pi_loss_options']['epoch_len'] = 40
-                    # else:
-                    #     params['train_params']['pi_loss_options']['epoch_len'] = 15
                     params['train_params']['pi_loss_options']['epoch_len'] = 40
 
                     params['train_params']['pi_loss_options']['corruption_rate'] = .5
@@ -111,7 +102,10 @@ class do_all:
                     params['train_params']['pi_loss_options']['im_availability'] = image_availability
                     params['train_params']['pi_loss_options']['additive_noise'] = reinference_error
 
-                    if cond_name == 'minimal_model/all_losses/':
+                    if cond_name in [
+                        'minimal_model/all_losses/', 'hybrid_LSTM/pretrained/', 'hybrid_LSTM/scratch/',
+                        'hybrid_LSTM/pretrained_high_fb/', 'hybrid_LSTM/scratch_high_fb/',
+                        'hybrid_LSTM/pretrained_low_fb/', 'hybrid_LSTM/scratch_low_fb/', ]:
                         params['train_params']['tuple_loss_options']['batch_size'] = 512
                     else:
                         params['train_params']['tuple_loss_options']['batch_size'] = 4
@@ -125,9 +119,17 @@ class do_all:
                     params['train_params']['n_epochs'] = 4000
 
                     if net_name == 'BigReimplementationPathIntegrator':
-                        params['train_params']['optimizer_params_scheduler_name'] = 'offshelf_default'
                         if cond_name == 'offshelf_LSTM/pretrained_frozen/':
                             params['train_params']['optimizer_params_scheduler_name'] = 'offshelf_dont_touch_encoding'
+                        else:
+                            params['train_params']['optimizer_params_scheduler_name'] = 'offshelf_default'
+                    elif net_name == 'BigHybridPathIntegrator':
+                            params['train_params']['optimizer_params_scheduler_name'] = 'hybrid_default'
+                            params['train_params']['losses_weights_scheduler_name'] = 'hybrid_default'
+                            if cond_name in ['hybrid_LSTM/pretrained_low_fb/', 'hybrid_LSTM/scratch_low_fb/']:
+                                params['train_params']['losses_weights_scheduler_name'] = 'hybrid_low_models'
+                            elif cond_name in ['hybrid_LSTM/pretrained_high_fb/', 'hybrid_LSTM/scratch_high_fb/']:
+                                params['train_params']['losses_weights_scheduler_name'] = 'hybrid_high_models'
                     else:
                         if cond_name == 'minimal_model/all_losses/':
                             params['train_params']['losses_weights_scheduler_name'] = 'default'
@@ -135,7 +137,6 @@ class do_all:
                         else:
                             params['train_params']['losses_weights_scheduler_name'] = 'default_no_fb'
                             params['train_params']['optimizer_params_scheduler_name'] = 'default_no_fb'
-
 
                     test_every = 500
                     params['test_suite'] = {}
@@ -146,6 +147,9 @@ class do_all:
 
                     if net_name == 'BigReimplementationPathIntegrator':
                         trainer = EndToEndTrainerOffshelf(params, seed)
+                    elif params['net_params']['net_name'] == 'BigHybridPathIntegrator':
+                        logging.critical('Trained HybridEndToEnd [seed{}]'.format(seed))
+                        trainer = EndToEndTrainerHybrid(params, seed)
                     else:
                         trainer = EndToEndTrainer(params, seed)
 

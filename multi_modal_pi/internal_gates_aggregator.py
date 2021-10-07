@@ -14,14 +14,14 @@ from matplotlib.patches import Rectangle, Circle
 from policy import RandomPolicy
 from itertools import cycle
 import json
-from environment import *
-from networks import *
-from scipy.stats import linregress
 from tqdm import tqdm
-from networks import network_register
 
-# network_register['ReimplementationPathIntegrator'] = ReimplementationPathIntegrator
-# network_register['BigReimplementationPathIntegrator'] = BigReimplementationPathIntegrator
+
+from SensorFusion.src.environment import *
+from SensorFusion.src.networks import *
+from SensorFusion.src.scipy.stats import linregress
+
+
 
 max = lambda x, y: x if x > y else y
 min = lambda x, y: x if x < y else y

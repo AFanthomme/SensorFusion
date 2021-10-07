@@ -1,6 +1,5 @@
 # These are just the visual tests, meant mostly for disagnostics
 # Main figures (aggregated across seeds for example) are in aggregator.py
-
 import torch as tch
 import numpy as np
 import matplotlib
@@ -16,9 +15,14 @@ import gc
 from matplotlib.patches import Rectangle, Circle
 from itertools import cycle
 from scipy.signal import lfilter
-from environment import meaningful_trajectories
-from policy import policy_register
 from tqdm import tqdm
+
+
+
+from src.environment import meaningful_trajectories
+from src.policy import policy_register
+
+
 
 max = lambda x, y: x if x > y else y
 min = lambda x, y: x if x < y else y
